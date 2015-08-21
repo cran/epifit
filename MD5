@@ -1,0 +1,15 @@
+770d2f1f7fc4a5f8a2d2ebc6cf7e8a9e *DESCRIPTION
+e7a243ffc29fae236e425cfbc5c533e5 *NAMESPACE
+ef08aa919987ce3570544dbf170ad66d *NEWS
+cf1dac4f20bce5aa8bd60f336637bf49 *R/AIC.epifit.R
+7f330f53ffe735b06fb8c85a550424b2 *R/epifit-package.R
+a4f0420e22f46ea8fcdf12e83ef9da89 *R/epifit.R
+84a402b7f8685edf6a054cb9c1baafb7 *R/modules.R
+1e4edcc8fdbd802e975aa3c12d7fa879 *R/print.epifit.R
+794302dcda40fab09aeefc1adbc7d0e9 *man/AIC.epifit.Rd
+9e9ad8799405278e716dc08b2503fa25 *man/epifit-package.Rd
+b23c0dbb162ed36b21ed297653f76e2c *man/epifit.Rd
+43c7fb88046f9a517b7f1198a54fdc06 *man/print.epifit.Rd
+e3d3cb360fbfdb3c6974e14eb5f09870 *src/Makevars
+7cdf814e4e9d585eefe5531871ee692e *src/select.cpp
+6312d67a2185d19e4e6a7d917658eeae *src/select.h
