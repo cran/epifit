@@ -1,11 +1,11 @@
 Package: epifit
 Type: Package
 Title: Flexible Modelling Functions for Epidemiological Data Analysis
-Version: 0.0.1
-Date: 2015-08-20
-Author: Kazutaka DOI [aut,cre],
-        Kei SAKABE [ctb],
-        Masataka TAGURI [ctb]
+Version: 0.0.2
+Date: 2015-09-01
+Author: Kazutaka Doi [aut,cre],
+        Kei Sakabe [ctb],
+        Masataka Taruri [ctb]
 Maintainer: Kazutaka Doi <kztkdi@gmail.com>
 Description: Provides flexible model fitting used in epidemiological data analysis
              by a unified model specification, along with some data manipulation functions. 
@@ -15,8 +15,9 @@ Description: Provides flexible model fitting used in epidemiological data analys
              distributions.
 License: GPL-3
 NeedsCompilation: yes
+ByteCompile: true
 Imports: stats, MASS
 Suggests: survival
-Packaged: 2015-08-21 09:47:33 UTC; kazutaka
+Packaged: 2015-08-31 22:21:07 UTC; kazutaka
 Repository: CRAN
-Date/Publication: 2015-08-21 15:53:11
+Date/Publication: 2015-09-01 17:38:20

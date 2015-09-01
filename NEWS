@@ -1,5 +1,16 @@
-epifit 0.0.1 (2015/08/21)
--------------------------------------------------------
+NEWS for the epifit package
+
+---------------------------------------------------------------------
+epifit 0.0.2 (2015/09/01)
+
+* Enabled "ties=average" and "ties=discrete" option in Cox regression
+* Distributional specifications has changed in some distributions 
+  (poisson -> pois, normal -> norm, binomial -> binom)
+* Enabled ByteCompile option in DESCRIPTION file
+
+---------------------------------------------------------------------
+epifit 0.0.1 (2015/08/22)
+
 FIRST VERSION
 
 * This is the first version to be made public

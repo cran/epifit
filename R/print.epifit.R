@@ -26,14 +26,14 @@ print.epifit <- function(x, digits=max(options()$digits -4, 3), ...){
   se <- sqrt(diag(x$var))
   z <- x$coefficient/se
   p <- 2*(1 - pnorm(abs(z)))
-  logtest <- -2*(x$loglik[1] - x$loglik[2])
+  #logtest <- -2*(x$loglik[1] - x$loglik[2])
   df <- sum(!is.na(length(x$coefficient)))
   tbl <- cbind(x$coefficient, se, z, p)
   rownames(tbl) <- x$parameters
   colnames(tbl) <- c("coef", "se(coef)", "z", "p")
   print(tbl, digits = digits)
-  cat("\n")
-  cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
-      df, " df,", " p=", format(1 - pchisq(logtest, df)),"\n",  sep="")
+  #cat("\n")
+  #cat("Likelihood ratio test=", format(round(logtest, 2)), "  on ",
+  #    df, " df,", " p=", format(1 - pchisq(logtest, df)),"\n",  sep="")
   invisible(x)
 }

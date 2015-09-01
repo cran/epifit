@@ -10,16 +10,6 @@ LogLikelihood <- function(init, num_nmodel, envs, weight, itereq,
 
     if(lst_psdresponse[[i]][[1]] == "cox"){
       
-      if(length(lst_psdresponse[[i]])==3){
-        time1name <- "time1_inner_"
-        time2name <- as.character(lst_psdresponse[[i]][[2]])
-        statusname <- as.character(lst_psdresponse[[i]][[3]])
-      } else {
-        time1name <- as.character(lst_psdresponse[[i]][[2]])
-        time2name <- as.character(lst_psdresponse[[i]][[3]])
-        statusname <- as.character(lst_psdresponse[[i]][[4]])
-      }
-      
       if(is.null(lst_option[[i]]))
         ties <- "efron"
       else
@@ -40,7 +30,7 @@ LogLikelihood <- function(init, num_nmodel, envs, weight, itereq,
                              lst_psdrespvar[[i]], envs[[i]][[1]])
         
       } else { # with random effect
-        
+        stop("reached unreachable code area in LogLikelihood function")
       }
     }
   }
@@ -52,14 +42,14 @@ InnerLogLikelihood <- function(init, parameters, distname, lst_psdparam, psdresp
   for(i in 1:length(parameters))
     assign(parameters[i], init[i], envir=env)
 
-  if(distname=="poisson"){
+  if(distname=="pois"){
     if(exists("weight_inner_", envir=env)){
       return(-sum(x=dpois(eval(psdrespvar, envir=env), eval(lst_psdparam[[1]], envir=env), log=TRUE)*
                   get("weight_inner_", envir=env)))
     } else {
       return(-sum(x=dpois(eval(psdrespvar, envir=env), eval(lst_psdparam[[1]], envir=env), log=TRUE)))
     }
-  } else if(distname=="normal"){
+  } else if(distname=="norm"){
 
     if(exists("weight_inner_", envir=env)){
       return(-sum(dnorm(x=eval(psdrespvar, envir=env), eval(lst_psdparam[[1]], envir=env),
@@ -69,7 +59,7 @@ InnerLogLikelihood <- function(init, parameters, distname, lst_psdparam, psdresp
                          eval(lst_psdparam[[2]], envir=env), log=TRUE)))
     }
     
-  } else if(distname=="binomial"){
+  } else if(distname=="binom"){
     
     if(exists("weight_inner_", envir=env)){
       return(-sum(dbinom(x=eval(psdrespvar, envir=env), eval(lst_psdparam[[1]], envir=env),
@@ -492,8 +482,8 @@ LogCoxLikelihood <- function(init, parameters, equations, itereq, envs, time1nam
     ## Main calculation loop begins here
     for(i in 2:nsubject){
       
-      if(length(itereq) > 0){
-        assign("time", rep(time2[i], nsubject), envir=envs[[strata]])    
+      if(nchar(itereq) > 0){
+        assign("T", rep(time2[i], nsubject), envir=envs[[strata]])    
         eval(itereq, envir=envs[[strata]])
         hazard <- eval(equations, envir=envs[[strata]])
         phazard <- hazard^weight
@@ -648,12 +638,12 @@ LogCoxLikelihood <- function(init, parameters, equations, itereq, envs, time1nam
 }
 
 ## R original function (will be deleted)
-SelectHazard <- function(m, n, hazard){
-  if(m == 0){
-    return(1)
-  } else if(m > n){
-    return(0)
-  } else {
-    return(SelectHazard(m, n-1, hazard) + hazard[n]*SelectHazard(m-1, n-1, hazard))
-  }
-}
+## SelectHazard <- function(m, n, hazard){
+##   if(m == 0){
+##     return(1)
+##   } else if(m > n){
+##     return(0)
+##   } else {
+##     return(SelectHazard(m, n-1, hazard) + hazard[n]*SelectHazard(m-1, n-1, hazard))
+##   }
+## }

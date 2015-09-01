@@ -16,7 +16,7 @@ epifit(modeleq, equations = "", initeq = "", itereq = "", endeq = "",
 
 \item{initeq}{a character string specifying R expressions executed once at the first time. Typical use is specifying initial values for parameters using R expressions. Multiple expressions separated by \sQuote{;} is allowed.}
 
-\item{itereq}{a character string specifying R expressions executed during Cox regression at each time of event occur. Typical use is incorporating time-dependent variables. See \sQuote{Details}.}
+\item{itereq}{a character string specifying R expressions executed during Cox regression at each time of event occur. Typical use is incorporating time-dependent variables. Not yet implemented completely.}
 
 \item{endeq}{a character string specifying R expressions executed at the end of calculations.}
 
@@ -24,11 +24,11 @@ epifit(modeleq, equations = "", initeq = "", itereq = "", endeq = "",
 
 \item{subset}{expression indicating which subset of the rows of data should be used in the fit. All observations are included by default.}
 
-\item{weight}{vector of case weights. If weights is a vector of integers, then the estimated coefficients are equivalent to estimating the model from data with the individual cases replicated as many times as indicated by weights. Only supported \sQuote{breslow} and \sQuote{efron} ties specification in Cox regression models.}
+\item{weight}{vector of case weights. If weights is a vector of integers, then the estimated coefficients are equivalent to estimating the model from data with the individual cases replicated as many times as indicated by weights. Only supported \sQuote{breslow} and \sQuote{efron} ties specification in Cox regression models and other likelihood specifications.}
 
 \item{na.action}{a missing-data filter function. This is applied when data.frame is supplied as \sQuote{data} parameter. Default is \code{options()$na.action}.}
 
-\item{opt}{a character string specifying the method for optimization. When sQuote{newrap} is specified, \code{nlm} function that uses Newton-type algorithm used for obtaining maximum likelihood estimate. For the rest of specifications (\sQuote{BFGS} for quasi-Newton method, \sQuote{CQ} for conjugate gradients method, \sQuote{SANN} for simulated annealing, \sQuote{Nelder-Mead} for Nelder and Mead simplex method), \code{optim} is used. The default is \sQuote{newrap}.}
+\item{opt}{a character string specifying the method for optimization. When sQuote{newrap} is specified, \code{nlm} function that uses Newton-type algorithm used for obtaining maximum likelihood estimate. For the rest of specifications (\sQuote{BFGS} for quasi-Newton method, \sQuote{CG} for conjugate gradients method, \sQuote{SANN} for simulated annealing, \sQuote{Nelder-Mead} for Nelder and Mead simplex method), \code{optim} is used. The default is \sQuote{newrap}.}
 
 \item{tol1}{a numeric value specifying \code{gtol} in nlm, \code{abstol} in optim.}
 
@@ -49,11 +49,11 @@ A list containing the result of model fitting including parameter estimates, var
 This function maximizes an arbitrary likelihood including generalized linear models and Cox partial likelihood.
 }
 \details{
-This function provides flexible model fitting. The main model specification is written in \code{modeleq}. \code{modeleq} consisits of two parts separated by \sQuote{~}. The distribution is specified in the first part, and the second part includes variable name which follows the specified distribution in the first part. Available distribution specifications are \sQuote{cox}(Cox partial likelihood), \sQuote{poisson}(Poisson distribution), \sQuote{normal}(normal distribution), \sQuote{binomial}(binomial distribution), \sQuote{nbinom}(negative binomial distribution), \sQuote{gamma}(gamma distribution) and \sQuote{weibull}(Weibull distribution). Options can be specified for some distribution specification after \sQuote{/} in the distribution specification part. Multiple options separated by \sQuote{,} can also be specified.
+This function provides flexible model fitting. The main model specification is written in \code{modeleq}. \code{modeleq} consisits of two parts separated by \sQuote{~}. The distribution is specified in the first part, and the second part includes variable name which follows the specified distribution in the first part. Available distributional specifications are \sQuote{cox}(Cox partial likelihood), \sQuote{pois}(Poisson distribution), \sQuote{norm}(normal distribution), \sQuote{binom}(binomial distribution), \sQuote{nbinom}(negative binomial distribution), \sQuote{gamma}(gamma distribution) and \sQuote{weibull}(Weibull distribution). Options can be specified for some distribution specification after \sQuote{/} in the distribution specification part. Multiple options separated by \sQuote{,} can also be specified.
 
-For Cox regressions, time and status variable must be specified in parentheses like \code{cox(time, status)}. Some options are also available for Cox regressions, and \sQuote{efron} and \sQuote{breslow} is available for tie handling method. Strata option which specifies a variable indicating strata is also available in Cox regressions. Subset option which has same functinality as subset argument below is also available for Cox regressions and other distribution specifications. For other distribution specifications, parameters must be specified in parentheses. For poisson distribution, mean parameter must be specified as \code{poisson(mean)}. Note that each parameter specificaiton can be a variable or R equation. For other distributions, \code{normal(mean, variance)}, \code{binomial(size, probability)}, \code{nbinom(size, probability)}, \code{gamma(shape, scale)}, \code{weibull(shape, scale)}.
+For Cox regressions, time and status variable must be specified in parentheses like \code{cox(time, status)}. Some options are also available for Cox regressions, and \sQuote{efron}, \sQuote{breslow}, \sQuote{discrete} and \sQuote{average} is available for tie handling method. \code{ties(discrete)} specification corresponds to \sQuote{exact} ties specification in \code{coxph} function, and \code{ties(average)} corresonds to \sQuote{exact} specification in SAS PHREG procecure. See references for further details. Strata option which specifies a variable indicating strata is also available in Cox regressions. Subset option which has same functinality as subset argument below is also available for Cox regressions and other distribution specifications. For other distribution specifications, parameters must be specified in parentheses. For poisson distribution, mean parameter must be specified as \code{pois(mean)}. Note that each parameter specificaiton can be a variable or R equation. For other distributions, \code{norm(mean, variance)}, \code{binom(size, probability)}, \code{nbinom(size, probability)}, \code{gamma(shape, scale)}, \code{weibull(shape, scale)}.
 
-When distributions are specified (not Cox regressions), additional R expressions can be specified in \code{equations} argument. If you define variable \sQuote{mu} in \code{equations}, you can use \sQuote{mu} in \code{modeleq} argument. Refer examples below.
+When distributions are specified (not Cox regressions), additional R expressions can be specified in \code{equations} argument. R expressions are parsed to make variable list. Variables which exist in data.frame or the global environment must be vector, and the rest of variables are regarded as parameters. If you define variable \sQuote{mu} in \code{equations}, you can use \sQuote{mu} in \code{modeleq} argument. Refer Poisson regression examples below.
 }
 \examples{
 library(survival)
@@ -75,7 +75,7 @@ epifit(modeleq=modeleq, data=dat)
 
 glm(status ~ x + offset(ltime), family=poisson(), data=dat)
 equations <- "mu <- time*exp(beta0 + beta1*x)"
-modeleq <- "poisson(mu) ~ status"
+modeleq <- "pois(mu) ~ status"
 epifit(modeleq=modeleq, equations=equations, data=dat)
 
 # The simplest test data set from coxph function
@@ -84,6 +84,7 @@ test1 <- list(time=c(4,3,1,1,2,2,3),
               x=c(0,2,1,1,1,0,0),
               sex=c(0,0,0,0,1,1,1))
 
+# Cox regressions with strata
 coxph(Surv(time, status) ~ x + strata(sex), data=test1)
 modeleq <- "cox(time,status)/strata(sex)~exp(beta*x)"
 epifit(modeleq=modeleq, data=test1)
@@ -92,5 +93,25 @@ epifit(modeleq=modeleq, data=test1)
 coxph(Surv(time, status) ~ x + strata(sex), data=test1, ties="breslow")
 modeleq <- "cox(time,status)/strata(sex),ties(breslow)~exp(beta*x)"
 epifit(modeleq=modeleq, data=test1)
+
+# Average partial likelihood
+modeleq <- "cox(time,status)/strata(sex),ties(average)~exp(beta*x)"
+epifit(modeleq=modeleq, data=test1)
+
+# Conditional logistic regression for matched case-control studies
+# hypothetical data
+conlog <- data.frame(strata=c(1,1,2,2,3,3,4,4,5,5), outcome=c(1,0,1,0,1,0,1,0,1,0),
+                     cov=c(1,3,2,1,5,2,4,2,2,2))
+# Make dummy survival time so that all the cases in a matched set have the same survival
+# time value, and the corresponding controls are censored at later times
+conlog <- cbind(conlog, dummy=(2 - conlog$outcome))
+coxph(Surv(dummy, outcome)~cov + strata(strata), ties="exact", data=conlog)
+modeleq <- "cox(dummy,outcome)/ties(discrete),strata(strata)~exp(beta*cov)"
+epifit(modeleq=modeleq, data=conlog)
+}
+\references{
+DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.
+
+Gail, M. H., Lubin, J. H., and Rubinstein, L. V. (1981). Likelihood calculations for matched case-control studies and survival studies with tied death times. \emph{Biometrika} \strong{68}, 703-707.
 }
 
