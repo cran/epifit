@@ -21,10 +21,10 @@
 #' @param tol1 a numeric value specifying \code{gtol} in nlm, \code{abstol} in optim.
 #' @param tol2 a numeric value specifying \code{stol} in nlm, \code{reltol} in optim.
 #' @param maxiter a integer value specifying the maximum number of iterations. Defaults is 200.
-#' @param init Initial values for the parameters specified in the form of vector.
+#' @param init initial values for the parameters specified in the form of vector.
 #' @param verbatim a integer value from 0 (minimum) to 2 (maximum) controlling the amount of information printed during calculation.
-#' @param ... For the arguments used in the inner functions (currently not used).
-#' @return A list containing the result of model fitting including parameter estimates, variance of parameter estimates, log likelihood and so on.
+#' @param ... for the arguments used in the inner functions (currently not used).
+#' @return a list containing the result of model fitting including parameter estimates, variance of parameter estimates, log likelihood and so on.
 #' @references DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.
 #' @references Gail, M. H., Lubin, J. H., and Rubinstein, L. V. (1981). Likelihood calculations for matched case-control studies and survival studies with tied death times. \emph{Biometrika} \strong{68}, 703-707.
 #' @examples
@@ -39,13 +39,13 @@
 #' etime <- rweibull(nsub, 1, 1/rate)
 #' status <- as.integer(etime < follow)
 #' time <- pmin(follow, etime)
-#' dat <- data.frame(status, x, time, ltime=log(time))
+#' dat <- data.frame(status, x, time)
 #'
 #' coxph(Surv(time, status)~x, data=dat)
 #' modeleq <- "cox(time,status)~exp(beta*x)"
 #' epifit(modeleq=modeleq, data=dat)
 #'
-#' glm(status ~ x + offset(ltime), family=poisson(), data=dat)
+#' glm(status ~ x + offset(log(time)), family=poisson(), data=dat)
 #' equations <- "mu <- time*exp(beta0 + beta1*x)"
 #' modeleq <- "pois(mu) ~ status"
 #' epifit(modeleq=modeleq, equations=equations, data=dat)
@@ -69,7 +69,7 @@
 #' # Average partial likelihood
 #' modeleq <- "cox(time,status)/strata(sex),ties(average)~exp(beta*x)"
 #' epifit(modeleq=modeleq, data=test1)
-#'
+#' 
 #' # Conditional logistic regression for matched case-control studies
 #' # hypothetical data
 #' conlog <- data.frame(strata=c(1,1,2,2,3,3,4,4,5,5), outcome=c(1,0,1,0,1,0,1,0,1,0),
@@ -80,27 +80,53 @@
 #' coxph(Surv(dummy, outcome)~cov + strata(strata), ties="exact", data=conlog)
 #' modeleq <- "cox(dummy,outcome)/ties(discrete),strata(strata)~exp(beta*cov)"
 #' epifit(modeleq=modeleq, data=conlog)
+#'
+#' 
+#' # Joint model example (for demonstrating technical specifications)
+#' nsub <- 1000
+#' follow <- 10
+#' x <- rnorm(nsub)
+#' dose <- rweibull(nsub, 0.5, 1/(2.84)^2)
+#' rate <- exp(-1 + x)*(1 + 0.5*dose)
+#'
+#' # Generate survival data
+#' etime <- rweibull(nsub, 1, 1/rate)
+#' status <- as.integer(etime < follow)
+#' time <- pmin(follow, etime)
+#' dat2 <- data.frame(event=status, py=time, x, dose, model=1)
+#'
+#' # Generate person-year table (baseline is different)
+#' py <- runif(nsub)*follow
+#' rate2 <- exp(-0.5 + 0.5*x)*(1 + 0.5*dose)
+#' event <- sapply(rate2*py, function(x){rpois(1, x)})
+#' dat3 <- cbind(pytable(event, py, cbind(x,dose)), model=2)
+#' dat4 <- rbind(dat2, dat3)
+#'
+#' modeleq <- c("cox(py,event)/subset(model==1)~exp(beta0*x)*(1 + beta*dose)",
+#'              "pois(py*exp(beta1 + beta2*x)*(1 + beta*dose))/subset(model==2) ~ event")
+#' epifit(modeleq, data=dat4)
 #' @export
-epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
-                   data, subset, weight, na.action,
+epifit <- function(modeleq=NULL, equations="", initeq="", itereq="", endeq="",
+                   data=NULL, subset=NULL, weight=NULL, na.action=NULL,
                    opt=c("newrap", "BFGS", "CG", "Nelder-Mead", "SANN"),
-                   tol1=1e-8, tol2=1e-8, maxiter=200, init, verbatim=0, ...){
+                   tol1=1e-8, tol2=1e-8, maxiter=200, init=NULL, verbatim=0, ...){
 
   ## argument processing
+
   args <- list(...)
   Call <- match.call(expand.dots=FALSE)
   opt <- match.arg(opt)
   
-  if(missing(modeleq))
+  if(is.null(modeleq))
     stop("modeleq cannot be omitted")
 
-  if(missing(na.action)){
+  if(is.null(na.action)){
     na.action <- options()$na.action
   }
 
   if(na.action=="na.fail"){
     
-    if(missing(data)){
+    if(is.null(data)){
       data <- .GlobalEnv
     } else {
       data <- list2env(na.fail(data), parent=.GlobalEnv)
@@ -108,7 +134,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
 
   } else if(na.action=="na.omit"){
 
-    if(missing(data)){
+    if(is.null(data)){
       data <- .GlobalEnv
     } else {
       data <- list2env(na.omit(data), parent=.GlobalEnv)
@@ -116,7 +142,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
     
   } else if(na.action=="na.exclude"){
 
-    if(missing(data)){
+    if(is.null(data)){
       data <- .GlobalEnv
     } else {
       data <- list2env(na.exclude(data), parent=.GlobalEnv)
@@ -124,7 +150,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
     
   } else if(na.action=="na.pass"){
 
-    if(missing(data)){
+    if(is.null(data)){
       data <- .GlobalEnv
     } else {
       data <- list2env(na.pass(data), parent=.GlobalEnv)
@@ -320,9 +346,10 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
     
     ## make dependent variable list for equations
     ## (lst_eqndepend, lst_eqnassigned)
+    ## BUG HERE
     if(nchar(equations[i]) > 0){
       for(j in 1:length(eqn_equation)){
-        tmp <- InnerListVariable(eqn_equation[j])
+        tmp <- InnerListVariable(ParseLine(eqn_equation[j]))
         if(length(tmp[[1]]) > 0)
           lst_eqnassigned[[j]] <- tmp[[1]]
         if(length(tmp[[2]]) > 0)
@@ -341,7 +368,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
         warning("Values of some objects will be changed during calculations")
       
       ## Make dependence list
-      vec_varlist <- InnerListVariable(eqn_respvar)[[2]]
+      vec_varlist <- InnerListVariable(ParseLine(eqn_respvar))[[2]]
       vec_depend <- LimitVarlist(vec_varlist, vec_assigned)
     } else {
       vec_depend <- character(0)
@@ -361,7 +388,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
 
     lst_psdparam[[i]] <- list(NULL)
     for(j in 1:length(vec_fmlparam)){
-      vec_varlist <- InnerListVariable(vec_fmlparam[j])[[2]]
+      vec_varlist <- InnerListVariable(ParseLine(vec_fmlparam[j]))[[2]]
       vec_depend <- LimitVarlist(vec_varlist, vec_assigned)
       if(length(vec_depend) > 0){
         vec_depfml <- SolveDependence(vec_depend, lst_eqnassigned, lst_eqndepend, eqn_equation)
@@ -379,7 +406,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
   ## summarize parameters and variables 
   vec_parameter <- unique(unlist(lst_parameter))
   vec_variable <- unique(unlist(lst_variable), vec_rvariable)
-
+  
   if(length(vec_parameter) < 1){
     stop("there are no parameters to estimate")
   }
@@ -387,18 +414,16 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
   ## obtain number of subjects from the first variable
   nsubject <- length(get(vec_variable[1], envir=data))
 
-  if(!missing(weight)){
+  if(!is.null(weight)){
     if(is.character(weight)){
       weight <- get(weight, envir=data)
     } else {
       weight <- eval(weight, envir=data)
     }
-  } else {
-    weight <- NULL
   }
   
   ## Get intial value from init argument
-  if(!missing(init)){
+  if(!is.null(init)){
     init <- rep(init, length(vec_parameter))
   } else {
     init <- rep(0, length(vec_parameter))
@@ -412,7 +437,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
   for(i in 1:num_nmodel){
 
     ## subset processing (commented out for debug)
-    if(!missing(subset)){
+    if(!is.null(subset)){
       index <- rep(TRUE, nsubject) & as.logical(eval(parse(text=subset), envir=data))
     } else {
       index <- rep(TRUE, nsubject)
@@ -441,7 +466,7 @@ epifit <- function(modeleq, equations="", initeq="", itereq="", endeq="",
         stop("unsupported model specification for Cox regression")
       }
       
-      if(min(status) < 0 || max(status) > 1){
+      if(min(status[idx]) < 0 || max(status[idx]) > 1){
         stop("range of status variable is not between 0 and 1")
       }      
 

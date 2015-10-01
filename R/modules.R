@@ -14,20 +14,20 @@ LogLikelihood <- function(init, num_nmodel, envs, weight, itereq,
         ties <- "efron"
       else
         ties <- lst_option[[i]]$"ties"
-      
+
       ret <- ret + LogCoxLikelihood(init[GetParamPosition(lst_parameter[[i]], vec_parameter)],
                                     lst_parameter[[i]], lst_psdrespvar[[i]], itereq[i],
                                     envs[[i]], "time1_inner_", "time2_inner_", "status_inner_",
                                     ties=ties, "weight_inner_")
-      
+
     } else {
 
       if(is.environment(envs[[i]][[1]])){ # no random effect
 
         ret <- ret +
           InnerLogLikelihood(init[GetParamPosition(lst_parameter[[i]],vec_parameter)],
-                             lst_parameter[[i]], lst_psdresponse[[i]][[1]], lst_psdparam[[i]],
-                             lst_psdrespvar[[i]], envs[[i]][[1]])
+                          lst_parameter[[i]], lst_psdresponse[[i]][[1]], lst_psdparam[[i]],
+                          lst_psdrespvar[[i]], envs[[i]][[1]])
         
       } else { # with random effect
         stop("reached unreachable code area in LogLikelihood function")
@@ -164,9 +164,9 @@ InsertFormula <- function(psd_target, vec_depfml){
       stop("vec_depfml must be assigning sentence in InsertFormula function")
     }
     
-    psd_fml <- parse(text=chr_fml)
+    psd_fml <- ParseLine(chr_fml)
   
-    psd_target[[1]] <- InnerInsertFormula(psd_target[[1]], chr_var, psd_fml[[1]])
+    psd_target[[1]] <- InnerInsertFormula(psd_target[[1]], chr_var, psd_fml)
   }
   return(psd_target)
 }
@@ -204,11 +204,6 @@ RemoveVariable <- function(varlist, remove){
   return(varlist[flag])
 }
 
-## faster version of "RemoveVariable" (only one removed variable)
-FastRemoveVariable <- function(varlist, remove){
-  return(varlist[varlist==remove])
-}
-
 ## Obtain option list
 GetOptions <- function(modelstr){
   ret <- list(NULL)
@@ -240,6 +235,7 @@ GetRespvar <- function(modelstr){
 }
 
 ## return variable list (variable, pre-parameter)
+## called from ClassifyParameter
 ClassifyVariable <- function(vec_varlist, envir){
   res <- list(character(0), character(0))
   for(i in 1:length(vec_varlist)){
@@ -252,6 +248,7 @@ ClassifyVariable <- function(vec_varlist, envir){
 }
 
 ## return variable list (parameter, variable)
+## call ClassifyVariable
 ClassifyParameter <- function(vec_varlist, envir, vec_remove=""){
   tmp <- ClassifyVariable(vec_varlist, envir)
   res <- list(character(0), character(0))
@@ -297,14 +294,14 @@ LimitVarlist <- function(vec_varlist, vec_varpool){
   return(res)
 }
 
-## Obtain parameter position as integer list
+## Obtain parameter position as integer subset list
 GetParamPosition <- function(param, paramlist){
-  ret <- numeric(0)
-  for(i in 1:length(param)){
-    if(param[i] %in% paramlist)
-      ret <- c(ret, i)
-  }
-  return(ret)
+  sapply(param, function(x){
+    for(i in 1:length(paramlist)){
+      if(x == paramlist[i])
+        return(i)
+    }
+  })
 }
 
 ## Make epifit result object from optim function
@@ -333,55 +330,35 @@ MakeResultFromNlm <- function(result, ans, nulllik){
   return(result)
 }
 
-## Check operator in equations (currently not yet used)
-CheckOperator <- function(expression){
-  supported <- c("-","+","*","/","^","<",">","==",">=","<=","<-", "=", "&","|",
+## Checking supported operator is included
+InnerListVariable <- function(tree){
+  supported <- c("-","+","*","/","^","<",">","==",">=","<=", "&","|","(",")",
                  "abs","acos","acosh", "as.integer","as.numeric","asin","asinh","atan",
                  "atanh","cos","cosh", "digamma","exp","expm1","factorial","floor",
                  "gamma","ifelse","lgamma", "lfactorial","log","log10","log1p","log2",
                  "logb","pmax","pmax.int", "pmin","pmin.int","print",
-                 "sin","sinh","tan","tanh","trigamma","(",")")
-  tryCatch({tree <- parse(text=expression)[[1]]},
-           warning=function(e){print(e)},
-           error=function(e){stop("Invalid expression: check equation")},
-           finally={}
-           )
-  if(length(tree) == 1){
-    return()
-  }
-  if(!(as.character(tree[[1]]) %in% supported)){
-    stop(paste("unsupported operator is found:", as.character(tree[[1]])), sep=" ")
-  }
-  for(i in 2:length(tree)){
-    CheckOperator(deparse(tree[[i]]))
-  }
-}
-
-## return assigned and varlist
-InnerListVariable <- function(expression){
-  tryCatch({tree <- parse(text=expression)[[1]]},
-           warning=function(e){print(e)},
-           error=function(e){stop("Invalid expression: check equation")},
-           finally={}
-           )
+                 "sin","sinh","tan","tanh","trigamma")  
   res <- list(character(0), character(0))
   if(length(tree) == 1){
     res[[2]] <- c(res[[2]], as.character(tree))
     return(res)
   }
-  if(as.character(tree[[1]]) == "<-" || as.character(tree[[1]]) == "="){
+  op <- as.character(tree[[1]])
+  if(op == "<-" || op == "="){
     res[[1]] <- c(res[[1]], as.character(tree[[2]]))
-    tmp <- InnerListVariable(deparse(tree[[3]]))
+    tmp <- InnerListVariable(tree[[3]])
     res[[1]] <- c(res[[1]], tmp[[1]])
     res[[2]] <- c(res[[2]], tmp[[2]])
-  } else if(as.character(tree[[1]]) == "->"){
+  } else if(op == "->"){
     res[[1]] <- c(res[[1]], as.character(tree[[3]]))
-    tmp <- InnerListVariable(deparse(tree[[2]]))
+    tmp <- InnerListVariable(tree[[2]])
     res[[1]] <- c(res[[1]], tmp[[1]])
     res[[2]] <- c(res[[2]], tmp[[2]])
+  } else if(!op %in% supported){
+    stop(paste("unsupported operator is found:", as.character(tree[[1]])), sep=" ")
   } else {
     for(j in 2:length(tree)){
-      tmp <- InnerListVariable(deparse(tree[[j]]))
+      tmp <- InnerListVariable(tree[[j]])
       res[[1]] <- c(res[[1]], tmp[[1]])
       res[[2]] <- c(res[[2]], tmp[[2]])
     }
@@ -389,20 +366,30 @@ InnerListVariable <- function(expression){
   return(res)
 }
 
-## Obtain result summarized over sentences
+## obtain variable list summarized over sentences ({assigned}, {arguments})
 ListVariable <- function(expression){
   expression <- DivideExpression(expression)
   res <- list(character(0), character(0))
   for(i in 1:length(expression)){
-    tmp <- InnerListVariable(expression[i])
+    tryCatch({tree <- ParseLine(expression[i])},
+             warning=function(e){print(e)},
+             error=function(e){stop("Invalid expression: check equation")},
+             finally={}
+             )
+    tmp <- InnerListVariable(tree)
     res[[1]] <- c(res[[1]], tmp[[1]])
     res[[2]] <- c(res[[2]], tmp[[2]])
   }
   return(res)
 }
 
+## Parse one line text
+ParseLine <- function(expression){
+  return(parse(text=expression)[[1]])
+}
+
 ## Obtain result per sentence
-ListVariable2 <- function(expression){
+ListVariablePerSentence <- function(expression){
   expression <- DivideExpression(expression)
   res <- list(NULL)
   for(i in 1:length(expression)){
@@ -637,13 +624,72 @@ LogCoxLikelihood <- function(init, parameters, equations, itereq, envs, time1nam
   return(ret)
 }
 
-## R original function (will be deleted)
-## SelectHazard <- function(m, n, hazard){
-##   if(m == 0){
-##     return(1)
-##   } else if(m > n){
-##     return(0)
-##   } else {
-##     return(SelectHazard(m, n-1, hazard) + hazard[n]*SelectHazard(m-1, n-1, hazard))
-##   }
-## }
+## obsolete
+## Check operator in equations (currently not yet used)
+## Included in InnerListVariable
+CheckOperator <- function(expression){
+  supported <- c("-","+","*","/","^","<",">","==",">=","<=","<-", "=", "&","|",
+                 "abs","acos","acosh", "as.integer","as.numeric","asin","asinh","atan",
+                 "atanh","cos","cosh", "digamma","exp","expm1","factorial","floor",
+                 "gamma","ifelse","lgamma", "lfactorial","log","log10","log1p","log2",
+                 "logb","pmax","pmax.int", "pmin","pmin.int","print",
+                 "sin","sinh","tan","tanh","trigamma","(",")")
+  tryCatch({tree <- ParseLine(expression)},
+           warning=function(e){print(e)},
+           error=function(e){stop("Invalid expression: check equation")},
+           finally={}
+           )
+  if(length(tree) == 1){
+    return()
+  }
+  if(!(as.character(tree[[1]]) %in% supported)){
+    stop(paste("unsupported operator is found:", as.character(tree[[1]])), sep=" ")
+  }
+  for(i in 2:length(tree)){
+    CheckOperator(deparse(tree[[i]]))
+  }
+}
+
+## return assigned and varlist
+InnerListVariableOld <- function(expression){
+  tryCatch({tree <- parse(text=expression)[[1]]},
+           warning=function(e){print(e)},
+           error=function(e){stop("Invalid expression: check equation")},
+           finally={}
+           )
+  res <- list(character(0), character(0))
+  if(length(tree) == 1){
+    res[[2]] <- c(res[[2]], as.character(tree))
+    return(res)
+  }
+  if(as.character(tree[[1]]) == "<-" || as.character(tree[[1]]) == "="){
+    res[[1]] <- c(res[[1]], as.character(tree[[2]]))
+    tmp <- InnerListVariableOld(deparse(tree[[3]]))
+    res[[1]] <- c(res[[1]], tmp[[1]])
+    res[[2]] <- c(res[[2]], tmp[[2]])
+  } else if(as.character(tree[[1]]) == "->"){
+    res[[1]] <- c(res[[1]], as.character(tree[[3]]))
+    tmp <- InnerListVariableOld(deparse(tree[[2]]))
+    res[[1]] <- c(res[[1]], tmp[[1]])
+    res[[2]] <- c(res[[2]], tmp[[2]])
+  } else {
+    for(j in 2:length(tree)){
+      tmp <- InnerListVariableOld(deparse(tree[[j]]))
+      res[[1]] <- c(res[[1]], tmp[[1]])
+      res[[2]] <- c(res[[2]], tmp[[2]])
+    }
+  }
+  return(res)
+}
+
+## obtain variable list summarized over sentences ({assigned}, {arguments})
+ListVariableOld <- function(expression){
+  expression <- DivideExpression(expression)
+  res <- list(character(0), character(0))
+  for(i in 1:length(expression)){
+    tmp <- InnerListVariable(expression[i])
+    res[[1]] <- c(res[[1]], tmp[[1]])
+    res[[2]] <- c(res[[2]], tmp[[2]])
+  }
+  return(res)
+}

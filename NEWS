@@ -1,6 +1,13 @@
 NEWS for the epifit package
 
 ---------------------------------------------------------------------
+epifit 0.0.3 (2015/10/01)
+
+* Added pytable function
+* Enabled joint model estimation
+* Some inner functions are optimized (equation manipulation functions)
+
+---------------------------------------------------------------------
 epifit 0.0.2 (2015/09/01)
 
 * Enabled "ties=average" and "ties=discrete" option in Cox regression

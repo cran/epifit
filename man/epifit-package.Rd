@@ -14,11 +14,12 @@ others whose likelihood is expressed in negative binomial, gamma and Weibull
 distributions.
 }
 \author{
-Author: Kazutaka DOI, Kei SAKABE and Masataka TAGURI
-Maintainer: Kazutaka DOI \email{kztkdi@gmail.com}
+Author: Kazutaka Doi, Kei Sakabe and Masataka Taguri
+Maintainer: Kazutaka Doi \email{kztkdi@gmail.com}
 }
 \seealso{
-\code{\link{epifit}}
+\code{\link{epifit}},
+\code{\link{pytable}}
 }
 \keyword{models}
 

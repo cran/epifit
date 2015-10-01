@@ -11,10 +11,11 @@
 #' @aliases epifit-pkg
 #' @docType package
 #' @author
-#' Author: Kazutaka DOI, Kei SAKABE and Masataka TAGURI
-#' Maintainer: Kazutaka DOI \email{kztkdi@@gmail.com}
+#' Author: Kazutaka Doi, Kei Sakabe and Masataka Taguri
+#' Maintainer: Kazutaka Doi \email{kztkdi@@gmail.com}
 #' @seealso
-#' \code{\link{epifit}}
+#' \code{\link{epifit}},
+#' \code{\link{pytable}}
 #' @useDynLib epifit
 #' @importFrom stats dbinom dgamma dnbinom dnorm dpois dweibull integrate na.exclude na.fail na.omit na.pass nlm optim pchisq pnorm
 #' @importFrom MASS ginv

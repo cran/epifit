@@ -4,9 +4,10 @@
 \alias{epifit}
 \title{Model fitting function for epifit package}
 \usage{
-epifit(modeleq, equations = "", initeq = "", itereq = "", endeq = "",
-  data, subset, weight, na.action, opt = c("newrap", "BFGS", "CG",
-  "Nelder-Mead", "SANN"), tol1 = 1e-08, tol2 = 1e-08, maxiter = 200, init,
+epifit(modeleq = NULL, equations = "", initeq = "", itereq = "",
+  endeq = "", data = NULL, subset = NULL, weight = NULL,
+  na.action = NULL, opt = c("newrap", "BFGS", "CG", "Nelder-Mead", "SANN"),
+  tol1 = 1e-08, tol2 = 1e-08, maxiter = 200, init = NULL,
   verbatim = 0, ...)
 }
 \arguments{
@@ -36,14 +37,14 @@ epifit(modeleq, equations = "", initeq = "", itereq = "", endeq = "",
 
 \item{maxiter}{a integer value specifying the maximum number of iterations. Defaults is 200.}
 
-\item{init}{Initial values for the parameters specified in the form of vector.}
+\item{init}{initial values for the parameters specified in the form of vector.}
 
 \item{verbatim}{a integer value from 0 (minimum) to 2 (maximum) controlling the amount of information printed during calculation.}
 
-\item{...}{For the arguments used in the inner functions (currently not used).}
+\item{...}{for the arguments used in the inner functions (currently not used).}
 }
 \value{
-A list containing the result of model fitting including parameter estimates, variance of parameter estimates, log likelihood and so on.
+a list containing the result of model fitting including parameter estimates, variance of parameter estimates, log likelihood and so on.
 }
 \description{
 This function maximizes an arbitrary likelihood including generalized linear models and Cox partial likelihood.
@@ -67,13 +68,13 @@ rate <- exp(-0.5 + x)
 etime <- rweibull(nsub, 1, 1/rate)
 status <- as.integer(etime < follow)
 time <- pmin(follow, etime)
-dat <- data.frame(status, x, time, ltime=log(time))
+dat <- data.frame(status, x, time)
 
 coxph(Surv(time, status)~x, data=dat)
 modeleq <- "cox(time,status)~exp(beta*x)"
 epifit(modeleq=modeleq, data=dat)
 
-glm(status ~ x + offset(ltime), family=poisson(), data=dat)
+glm(status ~ x + offset(log(time)), family=poisson(), data=dat)
 equations <- "mu <- time*exp(beta0 + beta1*x)"
 modeleq <- "pois(mu) ~ status"
 epifit(modeleq=modeleq, equations=equations, data=dat)
@@ -108,6 +109,31 @@ conlog <- cbind(conlog, dummy=(2 - conlog$outcome))
 coxph(Surv(dummy, outcome)~cov + strata(strata), ties="exact", data=conlog)
 modeleq <- "cox(dummy,outcome)/ties(discrete),strata(strata)~exp(beta*cov)"
 epifit(modeleq=modeleq, data=conlog)
+
+
+# Joint model example (for demonstrating technical specifications)
+nsub <- 1000
+follow <- 10
+x <- rnorm(nsub)
+dose <- rweibull(nsub, 0.5, 1/(2.84)^2)
+rate <- exp(-1 + x)*(1 + 0.5*dose)
+
+# Generate survival data
+etime <- rweibull(nsub, 1, 1/rate)
+status <- as.integer(etime < follow)
+time <- pmin(follow, etime)
+dat2 <- data.frame(event=status, py=time, x, dose, model=1)
+
+# Generate person-year table (baseline is different)
+py <- runif(nsub)*follow
+rate2 <- exp(-0.5 + 0.5*x)*(1 + 0.5*dose)
+event <- sapply(rate2*py, function(x){rpois(1, x)})
+dat3 <- cbind(pytable(event, py, cbind(x,dose)), model=2)
+dat4 <- rbind(dat2, dat3)
+
+modeleq <- c("cox(py,event)/subset(model==1)~exp(beta0*x)*(1 + beta*dose)",
+             "pois(py*exp(beta1 + beta2*x)*(1 + beta*dose))/subset(model==2) ~ event")
+epifit(modeleq, data=dat4)
 }
 \references{
 DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.

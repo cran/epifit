@@ -3,6 +3,7 @@
 S3method(AIC,epifit)
 S3method(print,epifit)
 export(epifit)
+export(pytable)
 importFrom(MASS,ginv)
 importFrom(stats,dbinom)
 importFrom(stats,dgamma)
