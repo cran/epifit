@@ -25,8 +25,12 @@
 #' @param verbatim a integer value from 0 (minimum) to 2 (maximum) controlling the amount of information printed during calculation.
 #' @param ... for the arguments used in the inner functions (currently not used).
 #' @return a list containing the result of model fitting including parameter estimates, variance of parameter estimates, log likelihood and so on.
+#' @useDynLib epifit Rf_select
 #' @references DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.
 #' @references Gail, M. H., Lubin, J. H., and Rubinstein, L. V. (1981). Likelihood calculations for matched case-control studies and survival studies with tied death times. \emph{Biometrika} \strong{68}, 703-707.
+#' @seealso
+#' \code{\link{AIC.epifit}},
+#' \code{\link{print.epifit}}
 #' @examples
 #' library(survival)
 #' 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.epifit.R
 \name{print.epifit}
 \alias{print.epifit}
-\title{Print function for epifit object}
+\title{Print function for epifit object.}
 \usage{
 \method{print}{epifit}(x, digits = max(options()$digits - 4, 3), ...)
 }

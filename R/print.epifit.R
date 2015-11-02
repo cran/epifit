@@ -1,7 +1,7 @@
-##' Print function for epifit object
+##' Print function for epifit object.
 ##'
 ##' This function print result of function \code{\link{epifit}}
-##' 
+##'
 ##' @param x Object of class \code{epifit}.
 ##' @param digits a non-null value for digits specifies the minimum number of significant digits to be printed in values. The default,  uses \code{max(\link[base:options]{getOption}}(digits - 4, 3)).
 ##' @param ... Further arguments passed to or from other methods.

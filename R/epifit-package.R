@@ -1,4 +1,4 @@
-#' Flexible Modelling Functions for Epidemiological Data Analysis
+#' Flexible Modelling Functions for Epidemiological Data Analysis.
 #'
 #' Provides flexible model fitting used in epidemiological data analysis
 #' by a unified model specification, along with some data manipulation functions.
@@ -14,8 +14,14 @@
 #' Author: Kazutaka Doi, Kei Sakabe and Masataka Taguri
 #' Maintainer: Kazutaka Doi \email{kztkdi@@gmail.com}
 #' @seealso
+#' \code{\link{calcAge}},
+#' \code{\link{convertNA}},
+#' \code{\link{countNA}},
 #' \code{\link{epifit}},
-#' \code{\link{pytable}}
+#' \code{\link{extractVariable}},
+#' \code{\link{pullOneValue}},
+#' \code{\link{pytable}},
+#' \code{\link{removeVariable}}
 #' @useDynLib epifit
 #' @importFrom stats dbinom dgamma dnbinom dnorm dpois dweibull integrate na.exclude na.fail na.omit na.pass nlm optim pchisq pnorm
 #' @importFrom MASS ginv

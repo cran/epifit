@@ -133,7 +133,7 @@ SolveDependence <- function(vec_depvar, lst_eqnassigned, lst_eqndepend, vec_eqns
           unsolved <- unsolved[unsolved != lst_eqndepend[[i]]]
           resfml <- c(SolveDependence(lst_eqndepend[[i]], lst_eqnassigned, lst_eqndepend, vec_eqns), resfml)
         } else if(length(lst_eqndepend[[i]]) > 1){
-          unsolved <- RemoveVariable(unsolved, lst_eqndepend[[i]])
+          unsolved <- RemoveVariableName(unsolved, lst_eqndepend[[i]])
           resfml <- c(SolveDependence(lst_eqndepend[[i]], lst_eqnassigned, lst_eqndepend, vec_eqns), resfml)
         }
         break
@@ -192,7 +192,7 @@ InnerInsertFormula <- function(psd_target, chr_var, psd_fml){
 }
 
 ## remove some variable names from variable list
-RemoveVariable <- function(varlist, remove){
+RemoveVariableName <- function(varlist, remove){
   flag <- rep(TRUE, length(varlist))
   for(i in 1:length(remove)){
     for(j in 1:length(varlist)){
@@ -301,7 +301,7 @@ GetParamPosition <- function(param, paramlist){
       if(x == paramlist[i])
         return(i)
     }
-  })
+  }, USE.NAMES=FALSE)
 }
 
 ## Make epifit result object from optim function
@@ -538,7 +538,7 @@ LogCoxLikelihood <- function(init, parameters, equations, itereq, envs, time1nam
           } else if(ties=="discrete"){
             
             if(tieevent > 0){
-              phazard[tiebegin] <- prod(phazard[tiebegin:(tiebegin+tieevent-1)])/.Call("Rf_select", tieevent, nsubject-tiebegin+1, phazard[tiebegin:nsubject])
+              phazard[tiebegin] <- prod(phazard[tiebegin:(tiebegin+tieevent-1)])/.Call(Rf_select, tieevent, nsubject-tiebegin+1, phazard[tiebegin:nsubject])
               status[tiebegin] <- 1 # regard as event
               riskset[tiebegin] <- 1
               status[(tiebegin+1):(i-1)] <- 0

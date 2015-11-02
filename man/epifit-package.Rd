@@ -4,7 +4,7 @@
 \name{epifit-package}
 \alias{epifit-package}
 \alias{epifit-pkg}
-\title{Flexible Modelling Functions for Epidemiological Data Analysis}
+\title{Flexible Modelling Functions for Epidemiological Data Analysis.}
 \description{
 Provides flexible model fitting used in epidemiological data analysis
 by a unified model specification, along with some data manipulation functions.
@@ -18,8 +18,14 @@ Author: Kazutaka Doi, Kei Sakabe and Masataka Taguri
 Maintainer: Kazutaka Doi \email{kztkdi@gmail.com}
 }
 \seealso{
+\code{\link{calcAge}},
+\code{\link{convertNA}},
+\code{\link{countNA}},
 \code{\link{epifit}},
-\code{\link{pytable}}
+\code{\link{extractVariable}},
+\code{\link{pullOneValue}},
+\code{\link{pytable}},
+\code{\link{removeVariable}}
 }
 \keyword{models}
 

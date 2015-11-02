@@ -1,10 +1,9 @@
 #' Make person-year table from individual data
 #'
 #' This function creates the person-years table from event, time and covariate data. The number of event and time of some observations with the same covariate data are summed up, and made into one observation.
-#' @title Make person-year table from individual data
-#' @param event a vector specifying number of event
-#' @param time a vector specifying time variable
-#' @param cov vector or matrix or data.frame of covariates
+#' @param event a vector specifying number of event.
+#' @param time a vector specifying time variable.
+#' @param cov vector or matrix or data.frame of covariates.
 #' @param scale a scaling for person-year. The value of 365.25 will make person-year table from time variable recoded as days.
 #' @return a person-year data.frame
 #' @examples

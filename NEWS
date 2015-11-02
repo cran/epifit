@@ -1,6 +1,16 @@
 NEWS for the epifit package
 
 ---------------------------------------------------------------------
+epifit 0.0.4 (2015/11/01)
+
+* Added removeVariable function
+* Added extractVariable function
+* Added countNA function
+* Added calcAge function
+* Added pullOneValue function
+* Added convertNA function
+
+---------------------------------------------------------------------
 epifit 0.0.3 (2015/10/01)
 
 * Added pytable function

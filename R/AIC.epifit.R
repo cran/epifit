@@ -1,10 +1,10 @@
-##' Function for calculating Akaike's \sQuote{An Information Criterion} (AIC) from epifit object
+##' Function for calculating Akaike's \sQuote{An Information Criterion} (AIC) from epifit object.
 ##'
 ##' Function called from generic function AIC in \pkg{stats} when the argument is epifit object.
-##' @title Akaike's An Information Criterion
-##' @param object a fitted epifit object for which there exists a 
+##' @param object a fitted epifit object.
 ##' @param ... not used in this version, only for compatibility purpose with generic function \code{AIC} currently.
 ##' @param k numeric, the \emph{penalty} per parameter to be used; the default \code{k = 2} is the classical AIC.
+##' @return a numeric AIC value.
 ##' @seealso \code{\link[stats]{AIC}}
 ##' @examples
 ##' library(survival)

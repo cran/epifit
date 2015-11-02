@@ -2,21 +2,21 @@
 % Please edit documentation in R/AIC.epifit.R
 \name{AIC.epifit}
 \alias{AIC.epifit}
-\title{Akaike's An Information Criterion}
+\title{Function for calculating Akaike's \sQuote{An Information Criterion} (AIC) from epifit object.}
 \usage{
 \method{AIC}{epifit}(object, ..., k = 2)
 }
 \arguments{
-\item{object}{a fitted epifit object for which there exists a}
+\item{object}{a fitted epifit object.}
 
 \item{...}{not used in this version, only for compatibility purpose with generic function \code{AIC} currently.}
 
 \item{k}{numeric, the \emph{penalty} per parameter to be used; the default \code{k = 2} is the classical AIC.}
 }
-\description{
-Function for calculating Akaike's \sQuote{An Information Criterion} (AIC) from epifit object
+\value{
+a numeric AIC value.
 }
-\details{
+\description{
 Function called from generic function AIC in \pkg{stats} when the argument is epifit object.
 }
 \examples{

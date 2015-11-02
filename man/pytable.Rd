@@ -7,11 +7,11 @@
 pytable(event, time, cov, scale = 1)
 }
 \arguments{
-\item{event}{a vector specifying number of event}
+\item{event}{a vector specifying number of event.}
 
-\item{time}{a vector specifying time variable}
+\item{time}{a vector specifying time variable.}
 
-\item{cov}{vector or matrix or data.frame of covariates}
+\item{cov}{vector or matrix or data.frame of covariates.}
 
 \item{scale}{a scaling for person-year. The value of 365.25 will make person-year table from time variable recoded as days.}
 }
@@ -19,9 +19,6 @@ pytable(event, time, cov, scale = 1)
 a person-year data.frame
 }
 \description{
-Make person-year table from individual data
-}
-\details{
 This function creates the person-years table from event, time and covariate data. The number of event and time of some observations with the same covariate data are summed up, and made into one observation.
 }
 \examples{

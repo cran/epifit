@@ -140,4 +140,8 @@ DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of sub
 
 Gail, M. H., Lubin, J. H., and Rubinstein, L. V. (1981). Likelihood calculations for matched case-control studies and survival studies with tied death times. \emph{Biometrika} \strong{68}, 703-707.
 }
+\seealso{
+\code{\link{AIC.epifit}},
+\code{\link{print.epifit}}
+}
 
