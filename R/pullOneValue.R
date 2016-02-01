@@ -1,12 +1,13 @@
 ##' Pull one set of values from variables included in data which are thought to include essentially the same information.
 ##'
-##' When some part of the data is missing, the missing information may be recovered from another source of information. This function scans all variables which are thought to include essentially the same information, and pulls value which is not missing.
+##' When some part of the data is missing, the missing information may be recovered from another source of information. This function scans all variables which are thought to include essentially the same information, and pulls value from a variable which is not missing.
 ##' @param data a data.frame in which variables are included
 ##' @param varlist a character vector of variable list which is assumed to contain the same information.
 ##' @param check a logical value specifying whether to scan all variables in varlist for incompatible values or not.
 ##' @return a vector including one set of values obtained from varlist.
 ##' @examples
 ##' dat <- data.frame(a1=c(NA,2,3), a2=c(1,NA,2), a3=c(1,2,NA), b=c(10,11,20))
+##' dat
 ##' pullOneValue(dat, c("a1", "a2", "a3"))
 ##' @export
 pullOneValue <- function(data=NULL, varlist=c(""), check=TRUE){

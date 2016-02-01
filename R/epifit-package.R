@@ -14,15 +14,19 @@
 #' Author: Kazutaka Doi, Kei Sakabe and Masataka Taguri
 #' Maintainer: Kazutaka Doi \email{kztkdi@@gmail.com}
 #' @seealso
+#' \code{\link{AIC.epifit}},
 #' \code{\link{calcAge}},
+#' \code{\link{convertFromFactor}},
 #' \code{\link{convertNA}},
 #' \code{\link{countNA}},
 #' \code{\link{epifit}},
 #' \code{\link{extractVariable}},
+#' \code{\link{listNumericIncompatibility}},
+#' \code{\link{modes}},
 #' \code{\link{pullOneValue}},
 #' \code{\link{pytable}},
-#' \code{\link{removeVariable}}
-#' @useDynLib epifit
+#' \code{\link{removeVariable}},
+#' \code{\link{showContents}}
 #' @importFrom stats dbinom dgamma dnbinom dnorm dpois dweibull integrate na.exclude na.fail na.omit na.pass nlm optim pchisq pnorm
 #' @importFrom MASS ginv
 #' @keywords models

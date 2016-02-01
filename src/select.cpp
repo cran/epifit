@@ -15,7 +15,6 @@
     along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <Rinternals.h>
 #include "select.h"
 
 double inner_select(int m, int n, SEXP hazard){

@@ -1,6 +1,13 @@
 NEWS for the epifit package
 
 ---------------------------------------------------------------------
+epifit 0.0.5 (2016/2/1)
+
+* Added showContents function
+* Added convertFromFactor function
+* Added listNumericIncompatiblity function
+
+---------------------------------------------------------------------
 epifit 0.0.4 (2015/11/01)
 
 * Added removeVariable function

@@ -5,7 +5,7 @@
 ##' @param ... not used in this version, only for compatibility purpose with generic function \code{AIC} currently.
 ##' @param k numeric, the \emph{penalty} per parameter to be used; the default \code{k = 2} is the classical AIC.
 ##' @return a numeric AIC value.
-##' @seealso \code{\link[stats]{AIC}}
+##' @seealso \code{\link[stats]{AIC}}.
 ##' @examples
 ##' library(survival)
 ##' # The simplest test data set from coxph function

@@ -1,6 +1,6 @@
-##' Count NA in variables.
+##' Count NAs in variables.
 ##'
-##' Count NA, and calculate NA proportion in data.frame.
+##' Count NAs, and calculate NA proportion in data.frame.
 ##' @param data a data.frame to summarize.
 ##' @return a matrix with total data, NA count and NA proportion.
 ##' @seealso
