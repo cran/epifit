@@ -10,7 +10,7 @@ modes(x)
 \item{x}{any R object.}
 }
 \description{
-Get the type or storage mode of an object.n
+Get the type or storage mode of an object.
 }
 \details{
 This function has the almost same functionality as storage.mode except for recognition of factor. Intended for inner use in \code{showContents}, which must be able to be specified outside of \code{showContents} function.

@@ -1,6 +1,12 @@
 NEWS for the epifit package
 
 ---------------------------------------------------------------------
+epifit 0.0.6 (2016/3/1)
+
+* Added choose option in pullOneValue function
+* calcAge function support vector of target date
+
+---------------------------------------------------------------------
 epifit 0.0.5 (2016/2/1)
 
 * Added showContents function

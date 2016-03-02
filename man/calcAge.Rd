@@ -9,7 +9,7 @@ calcAge(birthday, targetdate = Sys.Date(), unit = "year")
 \arguments{
 \item{birthday}{a character or character vector specifying birthday or base date.}
 
-\item{targetdate}{a character specifying current or target date.}
+\item{targetdate}{a character or character vector specifying target date.}
 
 \item{unit}{a character specifying unit for calculating the difference between the two dates. Values of "year", "month" and "day" are supported.}
 }

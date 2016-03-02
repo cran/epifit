@@ -4,13 +4,14 @@
 ##' @param data a data.frame in which variables are included
 ##' @param varlist a character vector of variable list which is assumed to contain the same information.
 ##' @param check a logical value specifying whether to scan all variables in varlist for incompatible values or not.
+##' @param choose a character value specifying which to choose among incompatible values. To choose \sQuote{first} or \sQuote{last} depends on the order of the data. \sQuote{lower} and \sQuote{upper} cannot be used for character variables. This option works only when check option is enabled (set to TRUE).
 ##' @return a vector including one set of values obtained from varlist.
 ##' @examples
 ##' dat <- data.frame(a1=c(NA,2,3), a2=c(1,NA,2), a3=c(1,2,NA), b=c(10,11,20))
 ##' dat
 ##' pullOneValue(dat, c("a1", "a2", "a3"))
 ##' @export
-pullOneValue <- function(data=NULL, varlist=c(""), check=TRUE){
+pullOneValue <- function(data=NULL, varlist=c(""), check=TRUE, choose=c("first", "last", "lower", "upper")){
 
   res <- NULL
   
@@ -30,7 +31,8 @@ pullOneValue <- function(data=NULL, varlist=c(""), check=TRUE){
     return(data[,idx])
   
   n <- nrow(data)
-  
+
+  # check variable mode
   if(is.numeric(data[,idx[1]])){
     res <- as.numeric(rep(NA, n))
     for(i in 2:length(idx)){
@@ -68,6 +70,17 @@ pullOneValue <- function(data=NULL, varlist=c(""), check=TRUE){
             cat("Imcompatible data exists in row:", i,"\n")
             for(j in idx){
               cat(allvar[j], " = ", data[i,j], "\n")
+            }
+            if(choose=="last"){
+              res[i] <- data[i,j]
+            } else if(choose=="lower"){
+              if(res[i] > data[i,j])
+                res[i] <- data[i,j]
+            } else if(choose=="upper"){
+              if(res[i] < data[i,j])
+                res[i] <- data[i,j]
+            } else if(choose!="first"){
+              stop("unknown option is specified in choose argument")
             }
           }
         }
