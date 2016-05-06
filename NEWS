@@ -1,19 +1,34 @@
 NEWS for the epifit package
 
----------------------------------------------------------------------
+---------------------------------------------------------------------------------
+epifit 0.1.0 (2016/5/1)
+
+* Several minor bugs were fixed in epifit function
+* Some names of arguments are changed (modeleq->modelexpr, equations->preexpr, initeq->initexpr, itereq->timedepexpr)
+* "endeq" argument in epifit function was deleted
+* Option specification format in epifit function was changed (ties(breslow) -> ties=breslow)
+* Supported inital parameter value search by specifying candidate value list to init argument
+* Introduced nullparam argument in epifit function to specify parameter values for null model
+* Supported time depedent covariate in Cox regression model
+* Added some helper functions for time dependent covariate for Cox regression
+* Added getIndex function
+* Added selectByIndex function
+* Added selectVariable function
+
+---------------------------------------------------------------------------------
 epifit 0.0.6 (2016/3/1)
 
 * Added choose option in pullOneValue function
 * calcAge function support vector of target date
 
----------------------------------------------------------------------
+---------------------------------------------------------------------------------
 epifit 0.0.5 (2016/2/1)
 
 * Added showContents function
 * Added convertFromFactor function
 * Added listNumericIncompatiblity function
 
----------------------------------------------------------------------
+---------------------------------------------------------------------------------
 epifit 0.0.4 (2015/11/01)
 
 * Added removeVariable function
@@ -23,14 +38,14 @@ epifit 0.0.4 (2015/11/01)
 * Added pullOneValue function
 * Added convertNA function
 
----------------------------------------------------------------------
+---------------------------------------------------------------------------------
 epifit 0.0.3 (2015/10/01)
 
 * Added pytable function
 * Enabled joint model estimation
 * Some inner functions are optimized (equation manipulation functions)
 
----------------------------------------------------------------------
+---------------------------------------------------------------------------------
 epifit 0.0.2 (2015/09/01)
 
 * Enabled "ties=average" and "ties=discrete" option in Cox regression
@@ -38,7 +53,7 @@ epifit 0.0.2 (2015/09/01)
   (poisson -> pois, normal -> norm, binomial -> binom)
 * Enabled ByteCompile option in DESCRIPTION file
 
----------------------------------------------------------------------
+---------------------------------------------------------------------------------
 epifit 0.0.1 (2015/08/22)
 
 FIRST VERSION

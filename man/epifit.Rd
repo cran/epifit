@@ -4,26 +4,24 @@
 \alias{epifit}
 \title{Model fitting function for epifit package}
 \usage{
-epifit(modeleq = NULL, equations = "", initeq = "", itereq = "",
-  endeq = "", data = NULL, subset = NULL, weight = NULL,
+epifit(modelexpr = NULL, preexpr = "", timedepexpr = "",
+  nullparam = NULL, data = NULL, subset = NULL, weight = NULL,
   na.action = NULL, opt = c("newrap", "BFGS", "CG", "Nelder-Mead", "SANN"),
   tol1 = 1e-08, tol2 = 1e-08, maxiter = 200, init = NULL,
   verbatim = 0, ...)
 }
 \arguments{
-\item{modeleq}{a character string specifying the model. See \sQuote{Details}.}
+\item{modelexpr}{a character string or string vector specifying the model. See \sQuote{Details}.}
 
-\item{equations}{a character string specifying R expressions executed before \sQuote{modeleq}. Multiple expressions separated by \sQuote{;} is allowed. See \sQuote{Details}.}
+\item{preexpr}{a character string or string vector specifying R expressions executed before \sQuote{modelexpr}. Multiple expressions separated by \sQuote{;} is allowed. See \sQuote{Details}.}
 
-\item{initeq}{a character string specifying R expressions executed once at the first time. Typical use is specifying initial values for parameters using R expressions. Multiple expressions separated by \sQuote{;} is allowed.}
+\item{timedepexpr}{a character string or string vector specifying R expressions executed during Cox regression at each time of event occurrence. Typical use is incorporating time-dependent variables. Not yet implemented completely.}
 
-\item{itereq}{a character string specifying R expressions executed during Cox regression at each time of event occur. Typical use is incorporating time-dependent variables. Not yet implemented completely.}
-
-\item{endeq}{a character string specifying R expressions executed at the end of calculations.}
+\item{nullparam}{a numeric vector specifying null model. The default is zero value is streched to a vector of same length as parameters, which indicate a null model where all parameter values are equal to zero.}
 
 \item{data}{a data.frame in which to interpret the variables named in the formula, or in the subset and the weights argument.}
 
-\item{subset}{expression indicating which subset of the rows of data should be used in the fit. All observations are included by default.}
+\item{subset}{an expression indicating which subset of the rows of data should be used in the fit. All observations are included by default.}
 
 \item{weight}{vector of case weights. If weights is a vector of integers, then the estimated coefficients are equivalent to estimating the model from data with the individual cases replicated as many times as indicated by weights. Only supported \sQuote{breslow} and \sQuote{efron} ties specification in Cox regression models and other likelihood specifications.}
 
@@ -37,7 +35,7 @@ epifit(modeleq = NULL, equations = "", initeq = "", itereq = "",
 
 \item{maxiter}{a integer value specifying the maximum number of iterations. Defaults is 200.}
 
-\item{init}{initial values for the parameters specified in the form of vector.}
+\item{init}{a numeric vector or list specifying initial values for the parameters specified in the form of vector. To search for the best initial values for parameters, provide a numeric vector including candidate values for a parameter with the name of its parameter. A default value can be specified as a list component without name. For example, there are three parameters (beta0, beta1, beta2) in a model and specified as \code{init=list(0, beta1=c(0,1,2)}, initial parameter values tried is (0, 0, 0), (0, 1, 0), and (0, 2, 0), and the best initial value is used for estimation.}
 
 \item{verbatim}{a integer value from 0 (minimum) to 2 (maximum) controlling the amount of information printed during calculation.}
 
@@ -50,11 +48,13 @@ a list containing the result of model fitting including parameter estimates, var
 This function maximizes an arbitrary likelihood including generalized linear models and Cox partial likelihood.
 }
 \details{
-This function provides flexible model fitting. The main model specification is written in \code{modeleq}. \code{modeleq} consisits of two parts separated by \sQuote{~}. The distribution is specified in the first part, and the second part includes variable name which follows the specified distribution in the first part. Available distributional specifications are \sQuote{cox}(Cox partial likelihood), \sQuote{pois}(Poisson distribution), \sQuote{norm}(normal distribution), \sQuote{binom}(binomial distribution), \sQuote{nbinom}(negative binomial distribution), \sQuote{gamma}(gamma distribution) and \sQuote{weibull}(Weibull distribution). Options can be specified for some distribution specification after \sQuote{/} in the distribution specification part. Multiple options separated by \sQuote{,} can also be specified.
+This function provides flexible model fitting. The main model specification is written in \code{modelexpr}. \code{modelexpr} consisits of two parts separated by \sQuote{~}. The distribution is specified in the first part, and the second part includes variable name which follows the specified distribution in the first part. Available distributional specifications are \sQuote{cox}(Cox partial likelihood), \sQuote{pois}(Poisson distribution), \sQuote{norm}(normal distribution), \sQuote{binom}(binomial distribution), \sQuote{nbinom}(negative binomial distribution), \sQuote{gamma}(gamma distribution) and \sQuote{weibull}(Weibull distribution). Options can be specified for some distribution specification after \sQuote{/} in the distribution specification part. One optional specification format is \sQuote{optionname=value}. Multiple options separated by \sQuote{,} can also be specified.
 
 For Cox regressions, time and status variable must be specified in parentheses like \code{cox(time, status)}. Some options are also available for Cox regressions, and \sQuote{efron}, \sQuote{breslow}, \sQuote{discrete} and \sQuote{average} is available for tie handling method. \code{ties(discrete)} specification corresponds to \sQuote{exact} ties specification in \code{coxph} function, and \code{ties(average)} corresonds to \sQuote{exact} specification in SAS PHREG procecure. See references for further details. Strata option which specifies a variable indicating strata is also available in Cox regressions. Subset option which has same functinality as subset argument below is also available for Cox regressions and other distribution specifications. For other distribution specifications, parameters must be specified in parentheses. For poisson distribution, mean parameter must be specified as \code{pois(mean)}. Note that each parameter specificaiton can be a variable or R equation. For other distributions, \code{norm(mean, variance)}, \code{binom(size, probability)}, \code{nbinom(size, probability)}, \code{gamma(shape, scale)}, \code{weibull(shape, scale)}.
 
-When distributions are specified (not Cox regressions), additional R expressions can be specified in \code{equations} argument. R expressions are parsed to make variable list. Variables which exist in data.frame or the global environment must be vector, and the rest of variables are regarded as parameters. If you define variable \sQuote{mu} in \code{equations}, you can use \sQuote{mu} in \code{modeleq} argument. Refer Poisson regression examples below.
+When distributions are specified, additional R expressions can be specified in \code{preexpr} argument. R expressions are parsed to make variable list. Variables which exist in data.frame or the global environment must be vector, and the rest of variables are regarded as parameters. If you define variable \sQuote{mu} in \code{preexpr}, you can use \sQuote{mu} in \code{modelexpr} argument. Refer Poisson regression examples below.
+
+Time dependent covariate in Cox regression is supported experimentally. Time can be referred as \code{time_inner_} at event time. Refer time dependent covariate example below.
 }
 \examples{
 library(survival)
@@ -71,13 +71,13 @@ time <- pmin(follow, etime)
 dat <- data.frame(status, x, time)
 
 coxph(Surv(time, status)~x, data=dat)
-modeleq <- "cox(time,status)~exp(beta*x)"
-epifit(modeleq=modeleq, data=dat)
+modelexpr <- "cox(time,status)~exp(beta*x)"
+epifit(modelexpr=modelexpr, data=dat)
 
 glm(status ~ x + offset(log(time)), family=poisson(), data=dat)
-equations <- "mu <- time*exp(beta0 + beta1*x)"
-modeleq <- "pois(mu) ~ status"
-epifit(modeleq=modeleq, equations=equations, data=dat)
+preexpr <- "mu <- time*exp(beta0 + beta1*x)"
+modelexpr <- "pois(mu) ~ status"
+epifit(modelexpr=modelexpr, preexpr=preexpr, data=dat)
 
 # The simplest test data set from coxph function
 test1 <- list(time=c(4,3,1,1,2,2,3),
@@ -87,17 +87,17 @@ test1 <- list(time=c(4,3,1,1,2,2,3),
 
 # Cox regressions with strata
 coxph(Surv(time, status) ~ x + strata(sex), data=test1)
-modeleq <- "cox(time,status)/strata(sex)~exp(beta*x)"
-epifit(modeleq=modeleq, data=test1)
+modelexpr <- "cox(time,status)/strata(sex)~exp(beta*x)"
+epifit(modelexpr=modelexpr, data=test1)
 
 # Tie specification example in Cox regressions
 coxph(Surv(time, status) ~ x + strata(sex), data=test1, ties="breslow")
-modeleq <- "cox(time,status)/strata(sex),ties(breslow)~exp(beta*x)"
-epifit(modeleq=modeleq, data=test1)
+modelexpr <- "cox(time,status)/strata=sex,ties=breslow~exp(beta*x)"
+epifit(modelexpr=modelexpr, data=test1)
 
 # Average partial likelihood
-modeleq <- "cox(time,status)/strata(sex),ties(average)~exp(beta*x)"
-epifit(modeleq=modeleq, data=test1)
+modelexpr <- "cox(time,status)/strata=sex,ties=average~exp(beta*x)"
+epifit(modelexpr=modelexpr, data=test1)
 
 # Conditional logistic regression for matched case-control studies
 # hypothetical data
@@ -107,8 +107,8 @@ conlog <- data.frame(strata=c(1,1,2,2,3,3,4,4,5,5), outcome=c(1,0,1,0,1,0,1,0,1,
 # time value, and the corresponding controls are censored at later times
 conlog <- cbind(conlog, dummy=(2 - conlog$outcome))
 coxph(Surv(dummy, outcome)~cov + strata(strata), ties="exact", data=conlog)
-modeleq <- "cox(dummy,outcome)/ties(discrete),strata(strata)~exp(beta*cov)"
-epifit(modeleq=modeleq, data=conlog)
+modelexpr <- "cox(dummy,outcome)/ties=discrete,strata=strata~exp(beta*cov)"
+epifit(modelexpr=modelexpr, data=conlog)
 
 
 # Joint model example (for demonstrating technical specifications)
@@ -131,9 +131,20 @@ event <- sapply(rate2*py, function(x){rpois(1, x)})
 dat3 <- cbind(pytable(event, py, cbind(x,dose)), model=2)
 dat4 <- rbind(dat2, dat3)
 
-modeleq <- c("cox(py,event)/subset(model==1)~exp(beta0*x)*(1 + beta*dose)",
-             "pois(py*exp(beta1 + beta2*x)*(1 + beta*dose))/subset(model==2) ~ event")
-epifit(modeleq, data=dat4)
+modelexpr <- c("cox(py,event)/subset=(model==1)~exp(beta0*x)*(1 + beta*dose)",
+             "pois(py*exp(beta1 + beta2*x)*(1 + beta*dose))/subset=(model==2) ~ event")
+epifit(modelexpr, data=dat4)
+
+# Time dependent covariate example
+id <- 1:8
+group <- c(0, 0, 0, 0, 1, 1, 1, 1)
+time <- c(4, 5, 7, 9, 6, 10, 11, 12)
+event <- c(1, 1, 0, 1, 1, 1, 1, 0)
+dat5 <- data.frame(id=id, group=group, time=time, event=event)
+modelexpr <- "cox(time, event) ~ exp(beta1*group + beta2*t_g)"
+# t_g is time-dependent variable created by using event time time_inner_ (created automatically)
+timedepexpr <- "t_g <- time_inner_ * group"
+epifit(modelexpr=modelexpr, timedepexpr=timedepexpr, data=dat5)
 }
 \references{
 DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.

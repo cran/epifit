@@ -27,8 +27,8 @@ test1 <- list(time=c(4,3,1,1,2,2,3),
               x=c(0,2,1,1,1,0,0),
               sex=c(0,0,0,0,1,1,1))
 AIC(coxph(Surv(time,status)~x + strata(sex), data=test1))
-modeleq <- "cox(time,status)/strata(sex)~exp(beta*x)"
-AIC(epifit(modeleq=modeleq, data=test1))
+modelexpr <- "cox(time,status)/strata(sex)~exp(beta*x)"
+AIC(epifit(modelexpr=modelexpr, data=test1))
 }
 \seealso{
 \code{\link[stats]{AIC}}.
