@@ -26,7 +26,7 @@
 #' @param verbatim a integer value from 0 (minimum) to 2 (maximum) controlling the amount of information printed during calculation.
 #' @param ... for the arguments used in the inner functions (currently not used).
 #' @return a list containing the result of model fitting including parameter estimates, variance of parameter estimates, log likelihood and so on.
-#' @useDynLib epifit Rf_select Rf_mumul
+#' @useDynLib epifit Rf_select Rf_mumul Rf_scanVarname
 #' @references DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.
 #' @references Gail, M. H., Lubin, J. H., and Rubinstein, L. V. (1981). Likelihood calculations for matched case-control studies and survival studies with tied death times. \emph{Biometrika} \strong{68}, 703-707.
 #' @seealso
@@ -63,7 +63,7 @@
 #'
 #' # Cox regressions with strata
 #' coxph(Surv(time, status) ~ x + strata(sex), data=test1)
-#' modelexpr <- "cox(time,status)/strata(sex)~exp(beta*x)"
+#' modelexpr <- "cox(time,status)/strata=sex~exp(beta*x)"
 #' epifit(modelexpr=modelexpr, data=test1)
 #'
 #' # Tie specification example in Cox regressions
@@ -283,7 +283,8 @@ epifit <- function(modelexpr=NULL, preexpr="", timedepexpr="", nullparam=NULL,
     ## left term is response variable specification
     if(length(grep(";", modelexpr[i])) != 0)
       stop("\";\" cannot be included in modelexpr")
-
+    modelexpr[i] <- sub("\n", "", modelexpr[i])
+    
     tmpstr <- strsplit(modelexpr[i], "~")[[1]]
     
     ## left side of "modelexpr" with option specifications
@@ -473,18 +474,18 @@ epifit <- function(modelexpr=NULL, preexpr="", timedepexpr="", nullparam=NULL,
       if(length(lst_psdparams[[i]]) == 4){
 
         tryCatch(
-          time1 <- eval(parse(text=lst_psdparams[[i]][[1]]), envir=data),
-          error=function(e){stop("Error in evaluating argument in Cox regression")}
+          time1 <- eval(parse(text=lst_psdparams[[i]][[2]]), envir=data),
+          error=function(e){stop("Error in evaluating time1 argument in Cox regression")}
           )
 
         tryCatch(
-          time2 <- eval(parse(text=lst_psdparams[[i]][[2]]), envir=data),
-          error=function(e){stop("Error in evaluating argument in Cox regression")}
+          time2 <- eval(parse(text=lst_psdparams[[i]][[3]]), envir=data),
+          error=function(e){stop("Error in evaluating time2 argument in Cox regression")}
           )
         
         tryCatch(
-          status <- eval(parse(text=lst_psdparams[[i]][[3]]), envir=data),
-          error=function(e){stop("Error in evaluating argument in Cox regression")}
+          status <- eval(parse(text=lst_psdparams[[i]][[4]]), envir=data),
+          error=function(e){stop("Error in evaluating status argument in Cox regression")}
           )
 
       } else if(length(lst_psdparams[[i]]) == 3){
@@ -493,12 +494,12 @@ epifit <- function(modelexpr=NULL, preexpr="", timedepexpr="", nullparam=NULL,
 
         tryCatch(
           time2 <- eval(parse(text=lst_psdparams[[i]][[2]]), envir=data),
-          error=function(e){stop("Error in evaluating argument in Cox regression")}
+          error=function(e){stop("Error in evaluating time argument in Cox regression")}
           )
         
         tryCatch(
           status <- eval(parse(text=lst_psdparams[[i]][[3]]), envir=data),
-          error=function(e){stop("Error in evaluating argument in Cox regression")}
+          error=function(e){stop("Error in evaluating status argument in Cox regression")}
           )
         
       } else {
@@ -507,7 +508,7 @@ epifit <- function(modelexpr=NULL, preexpr="", timedepexpr="", nullparam=NULL,
 
       ## status range check
       if(min(status[index]) < 0 || max(status[index]) > 1){
-        stop("range of status variable is not betweenn 0 and 1")
+        stop("range of status variable is not between 0 and 1")
       }
 
       if(length(time1) != length(time2) || length(time2) != length(status) ||
@@ -714,7 +715,7 @@ epifit <- function(modelexpr=NULL, preexpr="", timedepexpr="", nullparam=NULL,
                vec_parameter=vec_parameter, vec_variable=vec_variable,
                vec_innername=vec_innername)
     
-    result <- MakeResultFromNlm(result, ans, nulllik)
+    result <- MakeResultFromNlm(result, ans, ans$hessian, nulllik)
     
   } else {
     
@@ -727,7 +728,7 @@ epifit <- function(modelexpr=NULL, preexpr="", timedepexpr="", nullparam=NULL,
                  vec_parameter=vec_parameter, vec_variable=vec_variable,
                  vec_innername=vec_innername)
     
-    result <- MakeResultFromOptim(result, ans, nulllik)
+    result <- MakeResultFromOptim(result, ans, ans$hessian, nulllik)
     
   }
 

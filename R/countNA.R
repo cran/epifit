@@ -17,14 +17,14 @@ countNA <- function(data=NULL){
     stop("data is not specified or not data.frame")
   
   n <- nrow(data)
-  result <- matrix(n, ncol(data), 3)
+  result <- matrix(n, ncol(data), 4)
   rownames(result) <- colnames(data)
-  colnames(result) <- c("missing", "total", "percent(%)")
+  colnames(result) <- c("observed", "missing", "total", "percent(%)")
   
   for(i in 1:ncol(data)){
-    result[i,1] <- sum(as.integer(is.na(data[,i])))
-    result[i,3] <- result[i,1]/result[i,2]*100
+    result[i,2] <- sum(as.integer(is.na(data[,i])))
   }
-  
+  result[,4] <- result[,2]/result[,3]*100
+  result[,1] <- result[,3] - result[,2]
   return(result)
 }

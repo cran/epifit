@@ -2,27 +2,31 @@
 % Please edit documentation in R/convertNA.R
 \name{convertNA}
 \alias{convertNA}
-\title{Convert a character pattern into NA in character and vice versa.}
+\title{Convert a character pattern or numeric value into NA and vice versa.}
 \usage{
-convertNA(data = NULL, na.character = c("", "."), reverse = FALSE)
+convertNA(data = NULL, na.character = c(""), na.numeric = NA,
+  fromNA = FALSE)
 }
 \arguments{
 \item{data}{a data.frame to summarize.}
 
 \item{na.character}{a character vector specifying missing character.}
 
-\item{reverse}{a logical value specifying reverse replacement that NA is replaced with the first element of na.character.}
+\item{na.numeric}{a numeric vector specifying missing value.}
+
+\item{fromNA}{a logical value specifying replacement that NA is replaced with the first element of na.character or na.numeric.}
 }
 \value{
 a data.frame with NA replacement.
 }
 \description{
-Convert a character pattern into NA in character and vice versa.
+Convert a character pattern or numeric value into NA and vice versa.
 }
 \examples{
-dat <- data.frame(a=c("","2","3"),b=c("4", NA, "."), stringsAsFactors=FALSE)
-dat2 <- convertNA(dat)
-dat3 <- convertNA(dat2, na.character=".", reverse=TRUE)
+dat <- data.frame(a=c("","2","3"),b=c("4", NA, "."), c=c(-1,1,3),
+                  d=c(NA,3,2), stringsAsFactors=FALSE)
+dat2 <- convertNA(dat, na.character=c("", "."))
+dat3 <- convertNA(dat, na.character=".", na.numeric=-1, fromNA=TRUE)
 dat
 dat2
 dat3

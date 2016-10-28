@@ -87,7 +87,7 @@ test1 <- list(time=c(4,3,1,1,2,2,3),
 
 # Cox regressions with strata
 coxph(Surv(time, status) ~ x + strata(sex), data=test1)
-modelexpr <- "cox(time,status)/strata(sex)~exp(beta*x)"
+modelexpr <- "cox(time,status)/strata=sex~exp(beta*x)"
 epifit(modelexpr=modelexpr, data=test1)
 
 # Tie specification example in Cox regressions

@@ -20,10 +20,18 @@ selectVariable <- function(data=NULL, keep=NULL, drop=NULL){
   if(length(drop)==0){
     if(length(keep)==0)
       stop("either drop or keep must be specified")
+    # case of keep
+    for(var in keep)
+      if(!var %in% varlist)
+        stop(var , " is not included in data")
     idx <- match(keep, varlist)
   } else {
     if(length(keep) > 0)
       stop("both drop and keep cannot be specified")
+    #case of drop
+    for(var in drop)
+      if(!var %in% varlist)
+        stop(var , " is not included in data")
     idx <- -match(drop, varlist)
   }
   return(data[,idx])

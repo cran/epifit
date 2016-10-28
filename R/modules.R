@@ -537,10 +537,10 @@ GetParamPosition <- function(param, paramlist){
 }
 
 ## Make epifit result object from optim function
-MakeResultFromOptim <- function(result, ans, nulllik){
+MakeResultFromOptim <- function(result, ans, hessian, nulllik){
   result$coefficients <- ans$par
   result$loglik <- c(-nulllik, -ans$value)
-  result$var <- ginv(ans$hessian)
+  result$var <- ginv(hessian)
   result$iter <- ans$counts
   if(ans$convergence==0) result$convergence <- 0
   else if(ans$convergence==1) result$convergence <- 4
@@ -552,10 +552,10 @@ MakeResultFromOptim <- function(result, ans, nulllik){
 }
 
 ## Make epifit result object from nlm function
-MakeResultFromNlm <- function(result, ans, nulllik){
+MakeResultFromNlm <- function(result, ans, hessian, nulllik){
   result$coefficients <- ans$estimate
   result$loglik <- c(-nulllik, -ans$minimum)
-  result$var <- ginv(ans$hessian)
+  result$var <- ginv(hessian)
   result$iter <- ans$iterations
   result$convergence <- ans$code
   result$wald.test <- t(ans$estimate)%*%(ans$hessian)%*%(ans$estimate)
@@ -596,7 +596,7 @@ getSupportedOperator <- function(){
            "atanh","cos","cosh", "digamma","exp","expm1","factorial","floor",
            "gamma","ifelse","lgamma", "lfactorial","log","log10","log1p","log2",
            "logb","pmax","pmax.int", "pmin","pmin.int",
-           "sin","sinh","tan","tanh","trigamma",
+           "sin","sinh", "sum", "tan","tanh","trigamma",
            "[", "length", "print", "cat", "rep")) ## mainly for displaying inner result
 }
 
@@ -664,6 +664,7 @@ mumul <- function(vec){
   #return(ret)
 }
 
+# make combination of initial parameter candidate values
 makeInitVector <- function(...){
   param <- list(...) # param values
   nparam <- length(param) # number of parameters
@@ -701,4 +702,89 @@ makeInitVector <- function(...){
     names(lst_ret[[i]]) <- name
   }
   return(lst_ret)
+}
+
+mkSeqVariable <- function(varname="", start=0, end=0, step=1, dstenvir=NULL, srcenvir=NULL, func=mean, toLowerCategory=TRUE, defaultval=0){
+  if(!is.environment(srcenvir))
+    stop("environment must be specified in srcenvir argument in mkSeqVariable")
+  if(!is.environment(dstenvir))
+    stop("environment must be specified in dstenvir argument in mkSeqVariable")
+  
+  allvars <- ls(envir=srcenvir)
+  idx <- grep(varname, allvars)
+  
+  if(length(idx) == 0){
+    stop("No variables found")
+  }
+  
+  varlist <- allvars[idx]
+
+  if(start >= end){
+    stop("start must be specified with smaller value than end")
+  }
+  
+  resvar <- .Call(Rf_scanVarname, varlist)
+
+  if(is.na(resvar[[2]][1]))
+    stop(resvar[[1]])
+
+  point <- resvar[[2]][order(resvar[[2]])]
+
+  pos <- 1 # current position in pos
+  resvarname <- character(length(point))
+  nsubject <- length(get(paste(resvar[[1]], point[pos], sep=""), envir=srcenvir))
+  
+  while(point[pos] < start && pos < length(point)){
+    pos <- pos + 1
+  }
+  
+  for(i in seq(start, end, by=step)){
+    varname <- paste(resvar[[1]], i, sep="")    
+    resvarname[i] <- varname
+    
+    if(i <= point[pos]){
+      npos <- 0 # number of position included in interval [i, i+step)
+      while(point[pos + npos] < i + step && pos < length(point))
+        npos <-  npos + 1
+      if(npos > 0){
+        pointdata <- matrix(0, nsubject, npos)
+        value <- numeric(nsubject)
+        for(j in 1:npos) # obtain all data between interval [i, i+step)
+          pointdata[,j] <- get(paste(resvar[[1]], point[pos + j - 1], sep=""), envir=srcenvir)
+
+        for(j in 1:nsubject)
+          value[j] <- func(pointdata[j,]) # take mean or some functions for each point data
+        assign(varname, value, envir=dstenvir)
+      }
+
+    } else {
+      assign(paste(resvar[[1]], i, sep=""), rep(defaultval, nsubject), envir=dstenvir)
+    }
+  }
+  return(resvarname)
+}
+
+# time...time point, timename...name of time variable, param...time parameter value
+# paramname...name of parameter, psd_func...parsed function of weight
+getVariableWeight <- function(time, timename, param, paramname, psd_func, envir){
+  for(i in 1:length(param))
+    assign(paramname[i], param[i], envir=envir)
+  assign(timename, time)
+  return(eval(psd_func, envir=envir))
+}
+
+calcWeightedVariable <- function(param, paramname, varlist=NULL, time, timename, psd_func, timepoint, envir=NULL){
+  pointweight <- getVariableWeight(timepoint, timename, param, paramname, psd_func, envir)
+  totalweight <- sum(pointweight)
+  ntimepoint <- length(timepoint)
+  nsubject <- length(get(varlist[1], envir=envir))
+  pos <- findInterval(time, timepoint)
+  
+  ret <- numeric(nsubject)
+
+  if(pos < 1)
+    return(ret)
+  for(i in 1:pos)
+    ret <- ret + pointweight[i]*get(varlist[i], envir=envir)*ntimepoint/totalweight
+  return(ret)
 }

@@ -1,6 +1,14 @@
 NEWS for the epifit package
 
 ---------------------------------------------------------------------------------
+epifit 0.1.1 (2016/10/27)
+
+* epifit modelexpr argument allows more than two lines in model specification
+* Minor bug fix in convertNA function and added some new features
+* Added "automatic" mode in convertFromFactor function
+* Added warning message in selectVariable function
+
+---------------------------------------------------------------------------------
 epifit 0.1.0 (2016/5/1)
 
 * Several minor bugs were fixed in epifit function
