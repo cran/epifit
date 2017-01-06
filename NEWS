@@ -1,6 +1,12 @@
 NEWS for the epifit package
 
 ---------------------------------------------------------------------------------
+epifit 0.1.2 (2017/1/6)
+
+* Added strscan function
+* Supported counting process style of input in Cox regression model
+
+---------------------------------------------------------------------------------
 epifit 0.1.1 (2016/10/27)
 
 * epifit modelexpr argument allows more than two lines in model specification

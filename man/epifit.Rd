@@ -50,7 +50,7 @@ This function maximizes an arbitrary likelihood including generalized linear mod
 \details{
 This function provides flexible model fitting. The main model specification is written in \code{modelexpr}. \code{modelexpr} consisits of two parts separated by \sQuote{~}. The distribution is specified in the first part, and the second part includes variable name which follows the specified distribution in the first part. Available distributional specifications are \sQuote{cox}(Cox partial likelihood), \sQuote{pois}(Poisson distribution), \sQuote{norm}(normal distribution), \sQuote{binom}(binomial distribution), \sQuote{nbinom}(negative binomial distribution), \sQuote{gamma}(gamma distribution) and \sQuote{weibull}(Weibull distribution). Options can be specified for some distribution specification after \sQuote{/} in the distribution specification part. One optional specification format is \sQuote{optionname=value}. Multiple options separated by \sQuote{,} can also be specified.
 
-For Cox regressions, time and status variable must be specified in parentheses like \code{cox(time, status)}. Some options are also available for Cox regressions, and \sQuote{efron}, \sQuote{breslow}, \sQuote{discrete} and \sQuote{average} is available for tie handling method. \code{ties(discrete)} specification corresponds to \sQuote{exact} ties specification in \code{coxph} function, and \code{ties(average)} corresonds to \sQuote{exact} specification in SAS PHREG procecure. See references for further details. Strata option which specifies a variable indicating strata is also available in Cox regressions. Subset option which has same functinality as subset argument below is also available for Cox regressions and other distribution specifications. For other distribution specifications, parameters must be specified in parentheses. For poisson distribution, mean parameter must be specified as \code{pois(mean)}. Note that each parameter specificaiton can be a variable or R equation. For other distributions, \code{norm(mean, variance)}, \code{binom(size, probability)}, \code{nbinom(size, probability)}, \code{gamma(shape, scale)}, \code{weibull(shape, scale)}.
+For Cox regressions, time and status variable must be specified in parentheses like \code{cox(time, status)}. Counting process type of input is also supported for time-dependent Cox regressions (\code{cox(time1, time2, status)}), and see examples. Some options are available for Cox regressions, and \sQuote{efron}, \sQuote{breslow}, \sQuote{discrete} and \sQuote{average} is available for tie handling method. \code{ties(discrete)} specification corresponds to \sQuote{exact} ties specification in \code{coxph} function, and \code{ties(average)} corresonds to \sQuote{exact} specification in SAS PHREG procecure. See references for further details. Strata option which specifies a variable indicating strata is also available in Cox regressions. Subset option which has same functinality as subset argument below is also available for Cox regressions and other distribution specifications. For other distribution specifications, parameters must be specified in parentheses. For poisson distribution, mean parameter must be specified as \code{pois(mean)}. Note that each parameter specificaiton can be a variable or R equation. For other distributions, \code{norm(mean, variance)}, \code{binom(size, probability)}, \code{nbinom(size, probability)}, \code{gamma(shape, scale)}, \code{weibull(shape, scale)}.
 
 When distributions are specified, additional R expressions can be specified in \code{preexpr} argument. R expressions are parsed to make variable list. Variables which exist in data.frame or the global environment must be vector, and the rest of variables are regarded as parameters. If you define variable \sQuote{mu} in \code{preexpr}, you can use \sQuote{mu} in \code{modelexpr} argument. Refer Poisson regression examples below.
 
@@ -145,6 +145,28 @@ modelexpr <- "cox(time, event) ~ exp(beta1*group + beta2*t_g)"
 # t_g is time-dependent variable created by using event time time_inner_ (created automatically)
 timedepexpr <- "t_g <- time_inner_ * group"
 epifit(modelexpr=modelexpr, timedepexpr=timedepexpr, data=dat5)
+
+coxph(Surv(time, event) ~ group + tt(group),
+      tt = function(x, t, ...){x * t},data=dat5)
+
+cov0 <- data.frame(id=id, time=0, value=0*group)
+cov4 <- data.frame(id=id, time=3.9, value=4*group)
+cov5 <- data.frame(id=id, time=4.9, value=5*group)
+cov6 <- data.frame(id=id, time=5.9, value=6*group)
+cov9 <- data.frame(id=id, time=8.9, value=9*group)
+cov10 <- data.frame(id=id, time=9.9, value=10*group)
+cov11 <- data.frame(id=id, time=10.9, value=11*group)
+tdata <- data.frame(id=id, group=group)
+tdata <- tmerge(tdata, dat5, id, status=event(time, event))
+tdata <- tmerge(tdata, cov0, id, t_g=tdc(time, value))
+tdata <- tmerge(tdata, cov4, id, t_g=tdc(time, value))
+tdata <- tmerge(tdata, cov5, id, t_g=tdc(time, value))
+tdata <- tmerge(tdata, cov6, id, t_g=tdc(time, value))
+tdata <- tmerge(tdata, cov9, id, t_g=tdc(time, value))
+tdata <- tmerge(tdata, cov10, id, t_g=tdc(time, value))
+tdata <- tmerge(tdata, cov11, id, t_g=tdc(time, value))
+coxph(Surv(tstart, tstop, status) ~ group + t_g, data=tdata)
+epifit("cox(tstart, tstop, status) ~ exp(beta1*group + beta2*t_g)", data=tdata)
 }
 \references{
 DeLong, D. M., Guirguis, G.H., and So, Y.C. (1994). Efficient computation of subset selection probabilities with application to Cox regression. \emph{Biometrika} \strong{81}, 607-611.

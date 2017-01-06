@@ -788,3 +788,309 @@ calcWeightedVariable <- function(param, paramname, varlist=NULL, time, timename,
     ret <- ret + pointweight[i]*get(varlist[i], envir=envir)*ntimepoint/totalweight
   return(ret)
 }
+
+cumtdc <- function(time, value, varname, data1, delay, na.rm, default, epstime, options){
+
+  if(is.na(time) || is.na(value))
+    return(data1)
+
+  varlist <- names(data1)
+  startpos <- grep("tstart", varlist)
+  stoppos <- grep("tstop", varlist)
+  varpos <- grep(varname, varlist)
+  time <- time + delay
+  
+  if(length(startpos) == 0 || length(stoppos) == 0)
+    stop("neither a tstop argument nor an initial event argument was found")
+
+  data1 <- data1[order(data1[, startpos]),]
+  
+  tstart <- data1[,startpos]
+  tstop <- data1[,stoppos]
+  pos <- (tstart <= time) & (time < tstop)
+
+  if(sum(pos) > 1)
+    stop("Dupicate data for one id")
+
+  posnum <- sum((1:nrow(data1))*as.numeric(pos))
+
+  if(sum(pos) == 1){ # interval data exist
+
+    if(data1[posnum, startpos] == time){ # no need to divide
+      
+      if(length(varpos) == 0){ # no pre-value
+
+        if(posnum > 1)
+          data1[1:(posnum-1), varname] <- default
+        
+        data1[posnum:nrow(data1), varname] <- value
+        
+      } else { # pre-value exist
+
+        data1[posnum:nrow(data1), varname] <- data1[posnum:nrow(data1), varname] + value
+      }
+
+    } else { # need to divide interval
+      if(length(varpos) == 0){ # no pre-value
+        #                         tstart tstop cumcov
+        # pre-range(posnum - 1)      *     *
+        # target-range(posnum)       *   time  value-added
+        # NEW DATA inserted        time    *
+        # post-range(posnum + 1)     *     *   value-added
+
+        newdata <- data1[posnum,] # upper divided range created as new data
+        data1[1:posnum, varname] <- default # lower range included
+        if(nrow(data1) > posnum) # when later interval exists
+          data1[(posnum+1):nrow(data1), varname] <- value
+        newdata[, varname] <- value
+        
+        newdata[, startpos] <- time 
+        data1[posnum, stoppos] <- time
+        
+        data1 <- rbind(data1, newdata)
+        
+      } else { # pre-value exist
+        
+        #                         tstart tstop cumcov
+        # pre-range(posnum - 1)      *     *     *
+        # NEW DATA inserted          *    time   *
+        # target-range(posnum)     time    *   value-added
+        # post-range(posnum + 1)     *     *   value-added
+        
+        newdata <- data1[posnum,] # lower divided range created as new data
+        data1[posnum:nrow(data1), varname] <- data1[posnum:nrow(data1), varname] + value
+
+        newdata[, stoppos] <- time
+        data1[posnum, startpos] <- time
+        
+        data1 <- rbind(data1, newdata)
+      }
+    }
+    
+  } else if(time < tstart[1]){ # before the first interval
+
+    if(length(varpos) == 0)
+      data1[, varname] <- value
+    else
+      data1[, varname] <- data1[, varname] + value
+    
+  } else if(tstop[length(pos)] == time){ # covariate data added at the end of last interval
+
+      #                         tstart    tstop   cumcov
+      # pre-range(posnum - 1)      *       *        *
+      # target-range(last)         *    time-eps value-added
+      # NEW DATA(inserted)     time-eps   time   value-added
+      
+    if(length(varpos) == 0){ # no pre-data
+      
+      newdata <- data1[length(pos),]
+      data1[, varname] <- default
+
+      while(epstime > data1[length(pos), stoppos] - data1[length(pos), startpos]){
+        epstime <- epstime/2
+      }
+      
+      data1[length(pos), stoppos] <- data1[length(pos), stoppos] - epstime
+      newdata[, varname] <- value
+      newdata[, startpos] <- data1[length(pos), stoppos]
+      if(data1[length(pos), startpos] >= data1[length(pos), stoppos])
+        stop("epstime is too large (this error should not occure, maybe due to bug)")
+      
+      data1 <- rbind(data1, newdata)
+      
+    } else { # pre-data exist
+    
+      newdata <- data1[length(pos),]
+      newdata[, varname] <- data1[length(pos), varname] + value
+
+      while(epstime > data1[length(pos), stoppos] - data1[length(pos), startpos]){
+        epstime <- epstime/2
+      }
+      
+      newdata[, startpos] <-  data1[length(pos), stoppos] - epstime
+      data1[length(pos), stoppos] <- newdata[, startpos]
+      
+      if(data1[length(pos), startpos] >= data1[length(pos), stoppos])
+        stop("epstime is too large (this error should not occure, maybe due to bug)")
+
+      data1 <- rbind(data1, newdata)
+    }
+  } else { # upper outside
+    
+    if(length(varpos) == 0) # case of no pre-value
+      data1[, varname] <- default
+  }
+  
+  return(data1)
+}
+
+event <- function(time, value, varname, data1, delay, na.rm, default, epstime, options){
+
+  if(is.na(time) || is.na(value))
+    return(data1)
+  
+  varlist <- names(data1)
+  startpos <- grep("tstart", varlist)
+  stoppos <- grep("tstop", varlist)
+  time <- time + delay
+  
+  # interval exists
+  if(length(startpos) > 0){
+    
+    tstart <- data1[,startpos]
+    tstop <- data1[,stoppos]
+    pos <- (tstart < time) & (time <= tstop)
+    posnum <- sum((1:nrow(data1))*as.numeric(pos))
+    
+    if(sum(pos) > 1)
+      stop("Dupicate range for one id")
+
+    # inside of interval
+    if(sum(pos) == 1){
+    
+      if(data1[posnum, stoppos] == time){ # event at the end of interval
+
+        data1[      , varname] <- default
+        data1[posnum, varname] <- value
+        
+      } else { # event at the middle of interval
+        
+        newdata <- data1[posnum,]
+        data1[posnum, stoppos] <- time
+        data1[posnum, varname] <- value
+        newdata[, startpos] <- time
+        newdata[, varname] <- default
+        data1 <- rbind(data1, newdata)
+        
+      }
+      
+    } else { # interval exists, but time is outside of them
+      
+      data1 <- data1[order(data1[, startpos]),]
+      
+      if(data1[1, startpos] == time){ # event at the first time point
+
+        newdata <- data1[1,]
+        newdata[, startpos] <- data1[1, startpos] - epstime
+        newdata[, stoppos] <- data1[1, startpos]
+        newdata[, varname] <- value
+        data1[, varname] <- default
+        data1 <- rbind(newdata, data1)
+        
+      }
+    }
+    # do nothing in case of outside
+    
+  } else { # no interval exists
+    data1[, "tstart"] <- 0
+    data1[, "tstop"] <- time
+    data1[, varname] <- value
+  }
+  
+  return(data1)
+}
+
+tdispatch <- function(id, id1, id2, data1, data2, eqns, varnames, delay, na.rm, default, epstime, options){
+  data1 <- data1[id1==id, , drop=FALSE]
+  data2 <- data2[id2==id, , drop=FALSE]
+  if(nrow(data2) > 1)
+    stop("more elements supplied than there are to replace")
+
+  for(i in 1:length(eqns)){
+    if(length(eqns[[1]]) < 3){
+      if(length(eqns[[1]]) == 2 && eqns[[1]][[1]] == "event")
+        eqns[[i]][[length(eqns[[i]]) + 1]] <- 1
+      else
+        stop("incorrect number of argument")
+    }
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- varnames[i]
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- as.data.frame(data1)
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- delay
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- na.rm
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- default
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- epstime
+    eqns[[i]][[length(eqns[[i]]) + 1]] <- options
+    ret <- eval(eqns[[i]], data2)
+  }
+  return(ret)
+}
+
+tdmerge <- function(data1, data2, id, ..., tstart, tstop, options){
+
+  Call <- match.call()
+
+  if(missing(data1) || missing(data2) || missing(id))
+    stop("data1, data2, and id arguments are required")
+  if(!is.data.frame(data1) || !is.data.frame(data2))
+    stop("data1 and data2 must be a data.frame")
+    
+  id2 <- eval(Call[["id"]], data2, enclos = emptyenv())
+  id <- unique(id2[order(id2)])
+  id1 <- eval(Call[["id"]], data1, enclos = emptyenv())
+
+  if(!missing(tstart)){
+    
+    if(missing(tstop))
+      stop("either tstart or tstop cannot be specified")
+
+    data1[, "tstart"] <-  eval(Call[["tstart"]], data2)
+
+    data1[, "tstop"] <- eval(Call[["tstop"]], data2)
+
+  } else {
+    if(!missing(tstop))
+      stop("either tstart or tstop cannot be specified")
+
+    tstart <- NULL
+    tstop <- NULL
+  }
+
+  eqns <- substitute(as.list(...))[-1]
+  varnames <- names(eqns)
+  na.rm <- TRUE
+  delay <- 0
+  default <- 0
+  epstime <- 0.1
+  
+  if(!missing(options)){
+    
+    options <- as.list(options)
+    if(!is.null(options[["cmd"]]) || is.character(options[["cmd"]])){
+      eqns <- list(eqns, parse(text=options[["cmd"]]))
+    }
+    if(!is.null(options[["na.rm"]]))
+      na.rm <- options[["na.rm"]]
+    if(!is.null(options[["delay"]]))
+      delay <- options[["delay"]]
+    if(!is.null(options[["default"]]))
+      default <- options[["default"]]
+    if(!is.null(options[["epstime"]]))
+      epstime <- options[["epstime"]]
+    
+  } else {
+    options <- list()
+  }
+  
+  res <- lapply(id, tdispatch, id1=id1, id2=id2, data1=data1, data2=data2,
+                eqns=eqns, varnames=varnames, delay=delay, na.rm=na.rm,
+                default=default, epstime=epstime, options=options)
+
+  rowlengths <- sapply(res, nrow)
+  totlength <- sum(rowlengths)
+  listlength <- length(res)
+  reslist <- names(res[[1]])
+  
+  ret <- list()
+  for(var in reslist){
+    ret[[var]] <- res[[1]][,var]
+    if(listlength > 1){
+      length(ret[[var]]) <- totlength
+      curlength <- rowlengths[1]
+      for(i in 2:listlength){
+        ret[[var]][(curlength+1):(curlength + rowlengths[i])] <- res[[i]][,var]
+        curlength <- curlength + rowlengths[i]
+      }
+    }
+  }
+  return(as.data.frame(ret))
+}

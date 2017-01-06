@@ -26,7 +26,8 @@
 #' \code{\link{pullOneValue}},
 #' \code{\link{pytable}},
 #' \code{\link{removeVariable}},
-#' \code{\link{showContents}}
+#' \code{\link{showContents}},
+#' \code{\link{strscan}}
 #' @importFrom stats dbinom dgamma dnbinom dnorm dpois dweibull integrate na.exclude na.fail na.omit na.pass nlm optim pchisq pnorm
 #' @importFrom MASS ginv
 #' @keywords models

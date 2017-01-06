@@ -30,7 +30,8 @@ Maintainer: Kazutaka Doi \email{kztkdi@gmail.com}
 \code{\link{pullOneValue}},
 \code{\link{pytable}},
 \code{\link{removeVariable}},
-\code{\link{showContents}}
+\code{\link{showContents}},
+\code{\link{strscan}}
 }
 \keyword{models}
 
